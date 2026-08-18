@@ -3,7 +3,7 @@ import express, { type Request, type Response } from "express";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
-import { ADMIN_DEMO } from "../shared/admin.ts";
+import { findAdmin, isAdminLogin } from "../shared/admin.ts";
 import { validatePartnerPhone } from "../shared/phone.ts";
 import {
   isApplicationStatus,
@@ -208,12 +208,13 @@ export function createApp(options: CreateAppOptions) {
   app.post("/api/admin/login", (req, res) => {
     const login = String(req.body?.login ?? "").trim();
     const password = String(req.body?.password ?? "");
-    if (login !== ADMIN_DEMO.login || password !== ADMIN_DEMO.password) {
+    const account = findAdmin(login, password);
+    if (!account) {
       res.status(401).json({ message: "Неверный логин или пароль администратора" });
       return;
     }
-    setAdminSession(res, login);
-    res.json({ ok: true, login });
+    setAdminSession(res, account.login);
+    res.json({ ok: true, login: account.login });
   });
 
   app.post("/api/admin/logout", (req, res) => {
@@ -265,8 +266,8 @@ export function createApp(options: CreateAppOptions) {
     }
 
     const manager = String(req.body?.manager ?? "").trim();
-    if (!manager) {
-      res.status(400).json({ message: "Укажите ответственного менеджера" });
+    if (!isAdminLogin(manager)) {
+      res.status(400).json({ message: "Выберите менеджера из списка" });
       return;
     }
 

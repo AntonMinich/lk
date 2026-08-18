@@ -7,7 +7,7 @@
 
 ## Админка
 
-После входа (`admin` / `fincode`) слева меню:
+После входа (`admin` / `fincode` или `admin2` / `fincode2`) слева меню:
 
 - Заявки на регистрацию партнера — `/admin/partners`
 - Заявки на лизинг — `/admin/leasing`

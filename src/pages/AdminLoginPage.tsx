@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../components/AuthLayout";
 import { useAuth } from "../lib/auth";
-import { ADMIN_DEMO } from "../lib/local-partners";
+import { ADMIN_ACCOUNTS } from "../lib/local-partners";
 
 export function AdminLoginPage() {
   const { ready, admin, loginAdmin } = useAuth();
@@ -56,7 +56,13 @@ export function AdminLoginPage() {
       }
     >
       <p className="banner banner--ok" role="note">
-        Демо: логин <strong>{ADMIN_DEMO.login}</strong>, пароль <strong>{ADMIN_DEMO.password}</strong>
+        Демо:{" "}
+        {ADMIN_ACCOUNTS.map((item, index) => (
+          <span key={item.login}>
+            {index > 0 ? "; " : null}
+            <strong>{item.login}</strong> / <strong>{item.password}</strong>
+          </span>
+        ))}
       </p>
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <div className="field">
