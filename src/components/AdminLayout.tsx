@@ -1,5 +1,6 @@
 import { Navigate, NavLink, Outlet } from "react-router-dom";
 import { BrandMark } from "./BrandMark";
+import { NotificationBell } from "./NotificationBell";
 import { UserMenu } from "./UserMenu";
 import { useAuth } from "../lib/auth";
 
@@ -47,14 +48,17 @@ export function AdminLayout() {
         </nav>
       </aside>
       <header className="admin-header">
-        <UserMenu
-          name={adminName || "admin"}
-          role="Сотрудник"
-          items={[
-            { label: "Мой профиль", to: "/admin/profile" },
-            { label: "Выйти", danger: true, onClick: () => void logoutAdmin() },
-          ]}
-        />
+        <div className="admin-header__tools">
+          <NotificationBell audience="admin" allHref="/admin/notifications" />
+          <UserMenu
+            name={adminName || "admin"}
+            role="Сотрудник"
+            items={[
+              { label: "Мой профиль", to: "/admin/profile" },
+              { label: "Выйти", danger: true, onClick: () => void logoutAdmin() },
+            ]}
+          />
+        </div>
       </header>
       <div className="admin-content">
         <Outlet />

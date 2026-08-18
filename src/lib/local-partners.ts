@@ -1,7 +1,8 @@
 import { findAdmin, isAdminLogin } from "../../shared/admin.ts";
 import { createdHistoryEvent, ensureHistory, type HistoryEvent } from "../../shared/history.ts";
-import { loginBlockedMessage, normalizeStatus, type ApplicationStatus } from "./status";
 import { applyManagerChange, applyStatusChange } from "../../shared/workflow.ts";
+import { addNotification } from "./notifications";
+import { loginBlockedMessage, normalizeStatus, STATUS_LABEL, type ApplicationStatus } from "./status";
 
 export type PublicPartner = {
   id: string;
@@ -125,6 +126,12 @@ export function registerLocalPartner(input: {
     history: [createdHistoryEvent(createdAt)],
   };
   writeAll([...partners, partner]);
+  addNotification({
+    audience: "admin",
+    title: "Новая заявка на регистрацию",
+    text: `${partner.companyName} — ${partner.contactName}`,
+    href: `/admin/partners/${partner.id}`,
+  });
   return { ok: true, partner: toPublic(partner) };
 }
 
@@ -165,6 +172,13 @@ export function setLocalPartnerStatus(
   const next: StoredPartner = { ...current, ...applyStatusChange(workflowOf(current), status, manager) };
   partners[index] = next;
   writeAll(partners);
+  addNotification({
+    audience: "partner",
+    partnerId: next.id,
+    title: "Заявка на регистрацию",
+    text: `Статус: ${STATUS_LABEL[next.status]}`,
+    href: "/cabinet/applications",
+  });
   return toPublic(next);
 }
 
@@ -192,6 +206,15 @@ export function setLocalPartnerManager(
   const next: StoredPartner = { ...current, ...result.state };
   partners[index] = next;
   writeAll(partners);
+  if (next.responsibleManager !== current.responsibleManager) {
+    addNotification({
+      audience: "partner",
+      partnerId: next.id,
+      title: "Назначен менеджер",
+      text: `Ответственный: ${next.responsibleManager}`,
+      href: "/cabinet/applications",
+    });
+  }
   return { ok: true, partner: toPublic(next) };
 }
 

@@ -1,7 +1,8 @@
 import { isAdminLogin } from "../../shared/admin.ts";
 import { createdHistoryEvent, ensureHistory, type HistoryEvent } from "../../shared/history.ts";
-import { normalizeStatus, type ApplicationStatus } from "../../shared/status.ts";
+import { normalizeStatus, STATUS_LABEL, type ApplicationStatus } from "../../shared/status.ts";
 import { applyManagerChange, applyStatusChange } from "../../shared/workflow.ts";
+import { addNotification } from "./notifications";
 
 export type LeasingApplication = {
   id: string;
@@ -140,6 +141,12 @@ export function createLocalLeasing(input: {
     history: [createdHistoryEvent(createdAt)],
   };
   writeAll([...readAll(), application]);
+  addNotification({
+    audience: "admin",
+    title: "Новая заявка на лизинг",
+    text: `${application.companyName} — ${application.asset}`,
+    href: `/admin/leasing/${application.id}`,
+  });
   return application;
 }
 
@@ -160,6 +167,15 @@ export function setLocalLeasingStatus(
   const next = { ...current, ...applyStatusChange(workflowOf(current), status, manager) };
   items[index] = next;
   writeAll(items);
+  if (next.partnerId) {
+    addNotification({
+      audience: "partner",
+      partnerId: next.partnerId,
+      title: "Заявка на лизинг",
+      text: `${next.asset || "Заявка"}: ${STATUS_LABEL[next.status]}`,
+      href: `/cabinet/applications/${next.id}`,
+    });
+  }
   return next;
 }
 
@@ -187,5 +203,14 @@ export function setLocalLeasingManager(
   const next = { ...current, ...result.state };
   items[index] = next;
   writeAll(items);
+  if (next.partnerId && next.responsibleManager !== current.responsibleManager) {
+    addNotification({
+      audience: "partner",
+      partnerId: next.partnerId,
+      title: "Назначен менеджер",
+      text: `${next.asset || "Заявка"}: ${next.responsibleManager}`,
+      href: `/cabinet/applications/${next.id}`,
+    });
+  }
   return { ok: true, application: next };
 }
