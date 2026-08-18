@@ -16,6 +16,7 @@ export type PublicPartner = {
   phone: string;
   companyName: string;
   contactName: string;
+  createdAt: string;
 };
 
 export function toPublicPartner(record: PartnerRecord): PublicPartner {
@@ -24,6 +25,7 @@ export function toPublicPartner(record: PartnerRecord): PublicPartner {
     phone: record.phone,
     companyName: record.companyName,
     contactName: record.contactName,
+    createdAt: record.createdAt,
   };
 }
 

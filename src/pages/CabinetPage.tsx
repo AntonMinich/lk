@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { BrandMark } from "../components/BrandMark";
 import { useAuth } from "../lib/auth";
 import { formatPhoneDisplay } from "../lib/phone";
@@ -22,6 +22,9 @@ export function CabinetPage() {
           <span className="logo__text">Кабинет партнёра</span>
         </div>
         <div className="cabinet__user">
+          <Link to="/partners" className="ghost-btn">
+            Заявки
+          </Link>
           <span>{formatPhoneDisplay(partner.phone)}</span>
           <button type="button" className="ghost-btn" onClick={() => void logout()}>
             Выйти
