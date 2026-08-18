@@ -61,13 +61,13 @@ export async function savePartnerFiles(input: {
   }
 }
 
-export async function getPartnerFile(phone: string, key: string): Promise<StoredPartnerFile | null> {
+async function getStoredFile(storageKey: string): Promise<StoredPartnerFile | null> {
   try {
     const db = await openDb();
     try {
       return await new Promise((resolve, reject) => {
         const tx = db.transaction(STORE, "readonly");
-        const request = tx.objectStore(STORE).get(partnerFileKey(phone, key));
+        const request = tx.objectStore(STORE).get(storageKey);
         request.onsuccess = () => resolve((request.result as StoredPartnerFile | undefined) ?? null);
         request.onerror = () => reject(request.error ?? new Error("Не удалось прочитать файл"));
       });
@@ -79,11 +79,29 @@ export async function getPartnerFile(phone: string, key: string): Promise<Stored
   }
 }
 
-export async function downloadPartnerFile(phone: string, key: string, fallbackName: string): Promise<boolean> {
-  const stored = await getPartnerFile(phone, key);
-  if (!stored) {
-    return false;
+export async function putStoredFile(storageKey: string, file: StoredPartnerFile): Promise<void> {
+  const db = await openDb();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE, "readwrite");
+      tx.objectStore(STORE).put(file, storageKey);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error ?? new Error("Не удалось сохранить файл"));
+    });
+  } finally {
+    db.close();
   }
+}
+
+export async function getPartnerFile(phone: string, key: string): Promise<StoredPartnerFile | null> {
+  return getStoredFile(partnerFileKey(phone, key));
+}
+
+export async function getArchivedPartnerFile(storageKey: string): Promise<StoredPartnerFile | null> {
+  return getStoredFile(storageKey);
+}
+
+async function triggerDownload(stored: StoredPartnerFile, fallbackName: string) {
   const url = URL.createObjectURL(stored.blob);
   const link = document.createElement("a");
   link.href = url;
@@ -92,5 +110,22 @@ export async function downloadPartnerFile(phone: string, key: string, fallbackNa
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+export async function downloadPartnerFile(phone: string, key: string, fallbackName: string): Promise<boolean> {
+  const stored = await getPartnerFile(phone, key);
+  if (!stored) {
+    return false;
+  }
+  triggerDownload(stored, fallbackName);
+  return true;
+}
+
+export async function downloadArchivedPartnerFile(storageKey: string, fallbackName: string): Promise<boolean> {
+  const stored = await getStoredFile(storageKey);
+  if (!stored) {
+    return false;
+  }
+  triggerDownload(stored, fallbackName);
   return true;
 }

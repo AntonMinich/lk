@@ -1,24 +1,38 @@
-import {
-  APPLICATION_FILTERS,
-  countApplicationFilter,
-  type ApplicationFilterKey,
-  type ApplicationStatus,
-} from "../lib/status";
+import { APPLICATION_FILTERS, type ApplicationFilterKey } from "../lib/status";
 
-type StatusFilterBarProps<T extends { status: ApplicationStatus }> = {
-  items: T[];
-  value: ApplicationFilterKey;
-  onChange: (key: ApplicationFilterKey) => void;
+export type StatusFilterTone = "blue" | "orange" | "purple" | "green" | "red";
+
+export type StatusFilterItem<K extends string = string> = {
+  key: K;
+  label: string;
+  tone: StatusFilterTone;
 };
 
-export function StatusFilterBar<T extends { status: ApplicationStatus }>({
+type StatusFilterBarProps<T extends { status: string }, K extends string> = {
+  items: T[];
+  value: K;
+  onChange: (key: K) => void;
+  filters?: StatusFilterItem<K>[];
+};
+
+export function StatusFilterBar<T extends { status: string }, K extends string = ApplicationFilterKey>({
   items,
   value,
   onChange,
-}: StatusFilterBarProps<T>) {
+  filters,
+}: StatusFilterBarProps<T, K>) {
+  const list = (filters ?? (APPLICATION_FILTERS as StatusFilterItem<K>[])) as StatusFilterItem<K>[];
+
+  function count(key: K): number {
+    if (key === "all") {
+      return items.length;
+    }
+    return items.filter((item) => item.status === key).length;
+  }
+
   return (
     <div className="filter-bar" role="tablist" aria-label="Отбор заявок">
-      {APPLICATION_FILTERS.map((item) => {
+      {list.map((item) => {
         const selected = value === item.key;
         return (
           <button
@@ -30,7 +44,7 @@ export function StatusFilterBar<T extends { status: ApplicationStatus }>({
             onClick={() => onChange(item.key)}
           >
             <span className="filter-card__label">{item.label}</span>
-            <span className="filter-card__value">{countApplicationFilter(items, item.key)}</span>
+            <span className="filter-card__value">{count(item.key)}</span>
           </button>
         );
       })}

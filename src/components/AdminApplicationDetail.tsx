@@ -1,10 +1,11 @@
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { DocumentDownloadButton } from "./DocumentDownloadButton";
 import { adminLogins } from "../lib/local-partners";
 import { formatDateTime, formatFileSize } from "../lib/format";
 import type { HistoryEvent } from "../lib/history";
-import { STATUS_LABEL, type ApplicationStatus } from "../lib/status";
+import { isApplicationStatus, STATUS_LABEL } from "../lib/status";
+import type { PartnerDocumentKey } from "../lib/partner-docs";
 
 export type AdminFormField = {
   label: string;
@@ -19,24 +20,42 @@ export type AdminDocumentItem = {
   phone?: string;
 };
 
+export type AdminDetailPane = "main" | "history" | "archive" | "comments";
+
+export type AdminDetailLink = {
+  to: string;
+  label: string;
+  active?: boolean;
+};
+
 type AdminApplicationDetailProps = {
   title: string;
   crumbs?: { label: string; to?: string }[];
   fields: AdminFormField[];
   documents?: AdminDocumentItem[];
-  status: ApplicationStatus;
+  extraContent?: ReactNode;
+  status: string;
+  statusLabel?: string;
   manager: string;
   history: HistoryEvent[];
   historyHref: string;
   backHref: string;
-  showHistory?: boolean;
+  backLabel?: string;
+  pane?: AdminDetailPane;
+  extraLinks?: AdminDetailLink[];
+  allowManagerChange?: boolean;
   busy?: boolean;
   error?: string;
-  onAccept: () => void;
-  onApprove: () => void;
-  onReject: () => void;
-  onBlock: () => void;
+  canReplaceDocuments?: boolean;
+  onReplaceDocument?: (key: PartnerDocumentKey, file: File) => void | Promise<void>;
+  decisionActions?: ReactNode;
+  onAccept?: () => void;
+  onApprove?: () => void;
+  onReject?: () => void;
+  onBlock?: () => void;
   onChangeManager: (name: string) => void;
+  archiveContent?: ReactNode;
+  commentsContent?: ReactNode;
 };
 
 function Fact({ label, value }: AdminFormField) {
@@ -50,33 +69,83 @@ function Fact({ label, value }: AdminFormField) {
 
 const MANAGERS = adminLogins();
 
+function DocumentReplaceButton({
+  docKey,
+  busy,
+  onReplace,
+}: {
+  docKey: PartnerDocumentKey;
+  busy: boolean;
+  onReplace: (key: PartnerDocumentKey, file: File) => void | Promise<void>;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <>
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".pdf,.jpg,.jpeg,.png,.webp"
+        hidden
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = "";
+          if (file) {
+            void onReplace(docKey, file);
+          }
+        }}
+      />
+      <button
+        type="button"
+        className="admin-docs__replace"
+        disabled={busy}
+        onClick={() => inputRef.current?.click()}
+      >
+        Заменить
+      </button>
+    </>
+  );
+}
+
 export function AdminApplicationDetail({
   title,
   crumbs,
   fields,
   documents,
+  extraContent,
   status,
+  statusLabel,
   manager,
   history,
   historyHref,
   backHref,
-  showHistory = false,
+  backLabel = "К заявке",
+  pane = "main",
+  extraLinks,
+  allowManagerChange,
   busy = false,
   error = "",
+  canReplaceDocuments = false,
+  onReplaceDocument,
+  decisionActions,
   onAccept,
   onApprove,
   onReject,
   onBlock,
   onChangeManager,
+  archiveContent,
+  commentsContent,
 }: AdminApplicationDetailProps) {
   const defaultManager = MANAGERS.find((item) => item !== manager) ?? MANAGERS[0] ?? "";
   const [editingManager, setEditingManager] = useState(false);
   const [managerDraft, setManagerDraft] = useState(defaultManager);
+  const partnerStatus = isApplicationStatus(status) ? status : null;
 
-  const canAccept = status === "pending" || status === "rejected";
-  const canApprove = status === "accepted";
-  const canReject = status === "pending" || status === "accepted";
-  const canChangeManager = Boolean(manager) || status === "accepted";
+  const canAccept = partnerStatus === "pending" || partnerStatus === "rejected";
+  const canApprove = partnerStatus === "accepted" || partnerStatus === "blocked";
+  const canReject = partnerStatus === "pending" || partnerStatus === "accepted";
+  const canChangeManager = allowManagerChange ?? (Boolean(manager) || partnerStatus === "accepted");
+  const resolvedStatusLabel = statusLabel ?? (partnerStatus ? STATUS_LABEL[partnerStatus] : status);
 
   function handleManagerSubmit(event: FormEvent) {
     event.preventDefault();
@@ -84,37 +153,34 @@ export function AdminApplicationDetail({
     setEditingManager(false);
   }
 
-  const actions: ReactNode = (
+  const actions: ReactNode = decisionActions ?? (
     <>
-      {canAccept ? (
+      {canAccept && onAccept ? (
         <button type="button" className="action-btn action-btn--approve" disabled={busy} onClick={onAccept}>
           Принять
         </button>
       ) : null}
-      {canApprove ? (
+      {canApprove && onApprove ? (
         <button type="button" className="action-btn action-btn--approve" disabled={busy} onClick={onApprove}>
-          Одобрить
+          {partnerStatus === "blocked" ? "Активировать" : "Одобрить"}
         </button>
       ) : null}
-      {canReject ? (
+      {canReject && onReject ? (
         <button type="button" className="action-btn action-btn--reject" disabled={busy} onClick={onReject}>
           Отклонить
         </button>
       ) : null}
-      {status === "approved" || status === "active" ? (
+      {(partnerStatus === "approved" || partnerStatus === "active") && onBlock ? (
         <button type="button" className="action-btn action-btn--reject" disabled={busy} onClick={onBlock}>
           Заблокировать
-        </button>
-      ) : null}
-      {status === "blocked" ? (
-        <button type="button" className="action-btn action-btn--approve" disabled={busy} onClick={onApprove}>
-          Активировать
         </button>
       ) : null}
     </>
   );
 
   const historyRows = [...history].sort((a, b) => a.at.localeCompare(b.at));
+  const heading =
+    pane === "history" ? "История" : pane === "archive" ? "Архив документов" : pane === "comments" ? "Комментарий" : title;
 
   return (
     <div className="admin-detail">
@@ -135,13 +201,13 @@ export function AdminApplicationDetail({
             ))}
           </nav>
         ) : null}
-        <h1>{showHistory ? "История" : title}</h1>
+        <h1>{heading}</h1>
         {error ? (
           <p className="field__error" role="alert">
             {error}
           </p>
         ) : null}
-        {showHistory ? (
+        {pane === "history" ? (
           <div className="history-table-wrap">
             <table className="history-table">
               <thead>
@@ -164,6 +230,10 @@ export function AdminApplicationDetail({
               </tbody>
             </table>
           </div>
+        ) : pane === "archive" ? (
+          archiveContent
+        ) : pane === "comments" ? (
+          commentsContent
         ) : (
           <>
             <div className="admin-facts">
@@ -171,6 +241,7 @@ export function AdminApplicationDetail({
                 <Fact key={field.label} {...field} />
               ))}
             </div>
+            {extraContent}
             {documents ? (
               <div className="admin-docs">
                 <h2>Приложенные документы</h2>
@@ -195,9 +266,18 @@ export function AdminApplicationDetail({
                             {item.size ? ` · ${formatFileSize(item.size)}` : ""}
                           </span>
                         </span>
-                        {item.phone && item.key ? (
-                          <DocumentDownloadButton phone={item.phone} docKey={item.key} fileName={item.fileName} />
-                        ) : null}
+                        <span className="admin-docs__actions">
+                          {item.phone && item.key ? (
+                            <DocumentDownloadButton phone={item.phone} docKey={item.key} fileName={item.fileName} />
+                          ) : null}
+                          {canReplaceDocuments && onReplaceDocument && item.key ? (
+                            <DocumentReplaceButton
+                              docKey={item.key as PartnerDocumentKey}
+                              busy={busy}
+                              onReplace={onReplaceDocument}
+                            />
+                          ) : null}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -210,7 +290,7 @@ export function AdminApplicationDetail({
       <aside className="admin-actions">
         <div className={`admin-status admin-status--${status}`}>
           <p className="admin-actions__title">Статус</p>
-          <span className={`status-pill status-pill--${status}`}>{STATUS_LABEL[status]}</span>
+          <span className={`status-pill status-pill--${status}`}>{resolvedStatusLabel}</span>
         </div>
         <p className="admin-actions__title">Ответственный менеджер</p>
         <p className="admin-actions__manager">{manager || "Не назначен"}</p>
@@ -261,15 +341,25 @@ export function AdminApplicationDetail({
         ) : null}
         <p className="admin-actions__title">Решение</p>
         {actions}
-        {showHistory ? (
-          <Link to={backHref} className="admin-actions__link">
-            К заявке
-          </Link>
-        ) : (
-          <Link to={historyHref} className="admin-actions__link">
+        <nav className="admin-actions__nav" aria-label="Разделы заявки">
+          <Link to={historyHref} className={`admin-actions__link${pane === "history" ? " is-active" : ""}`}>
             История ({history.length})
           </Link>
-        )}
+          {extraLinks?.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={`admin-actions__link${item.active ? " is-active" : ""}`}
+            >
+              {item.label}
+            </Link>
+          ))}
+          {pane !== "main" ? (
+            <Link to={backHref} className="admin-actions__link">
+              {backLabel}
+            </Link>
+          ) : null}
+        </nav>
       </aside>
     </div>
   );

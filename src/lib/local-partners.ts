@@ -1,9 +1,14 @@
 import { findAdmin, isAdminLogin } from "../../shared/admin.ts";
 import { fillApplicationSeq, applicationSeqChanged, nextApplicationSeq } from "../../shared/application-no.ts";
-import { createdHistoryEvent, ensureHistory, type HistoryEvent } from "../../shared/history.ts";
+import { createHistoryEvent, createdHistoryEvent, ensureHistory, type HistoryEvent } from "../../shared/history.ts";
 import { applyManagerChange, applyStatusChange } from "../../shared/workflow.ts";
 import { addNotification } from "./notifications";
-import { sanitizePartnerDocuments, type PartnerDocument } from "./partner-docs";
+import {
+  partnerDocumentLabel,
+  sanitizePartnerDocuments,
+  type PartnerDocument,
+  type PartnerDocumentKey,
+} from "./partner-docs";
 import { loginBlockedMessage, normalizeStatus, STATUS_LABEL, type ApplicationStatus } from "./status";
 
 export type PublicPartner = {
@@ -261,6 +266,47 @@ export function setLocalPartnerManager(
     });
   }
   return { ok: true, partner: toPublic(next) };
+}
+
+export function replaceLocalPartnerDocument(
+  id: string,
+  key: PartnerDocumentKey,
+  meta: { fileName: string; size: number; mime: string },
+  actor: string,
+): PublicPartner | null {
+  const partners = readAll();
+  const index = partners.findIndex((item) => item.id === id);
+  if (index < 0) {
+    return null;
+  }
+  const current = partners[index];
+  if (!current) {
+    return null;
+  }
+  const nextDoc: PartnerDocument = {
+    key,
+    fileName: meta.fileName,
+    size: meta.size,
+    mime: meta.mime,
+  };
+  const hasKey = current.documents.some((item) => item.key === key);
+  const documents = hasKey
+    ? current.documents.map((item) => (item.key === key ? nextDoc : item))
+    : [...current.documents, nextDoc];
+  const next: StoredPartner = {
+    ...current,
+    documents,
+    history: [
+      ...current.history,
+      createHistoryEvent({
+        actor,
+        text: `Документ «${partnerDocumentLabel(key)}» заменён`,
+      }),
+    ],
+  };
+  partners[index] = next;
+  writeAll(partners);
+  return toPublic(next);
 }
 
 export function writeLocalSession(partner: PublicPartner) {

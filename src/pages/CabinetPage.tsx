@@ -5,32 +5,34 @@ import { StatusFilterBar } from "../components/StatusFilterBar";
 import { PageHeader } from "../components/ui/PageHeader";
 import { useAuth } from "../lib/auth";
 import { formatDateTime } from "../lib/format";
+import { formatLeasingApplicationNo } from "../lib/application-no";
 import { listLocalLeasingByPartner } from "../lib/leasing";
 import {
-  matchesApplicationFilter,
-  STATUS_LABEL,
-  statusRank,
-  type ApplicationFilterKey,
-} from "../lib/status";
+  LEASING_FILTERS,
+  LEASING_STATUS_LABEL,
+  leasingStatusRank,
+  matchesLeasingFilter,
+  type LeasingFilterKey,
+} from "../lib/leasing-status";
 
 export function CabinetPage() {
   const { partner } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const created = Boolean((location.state as { created?: boolean } | null)?.created);
-  const [filter, setFilter] = useState<ApplicationFilterKey>("all");
+  const [filter, setFilter] = useState<LeasingFilterKey>("all");
 
   const applications = useMemo(() => {
     if (!partner) {
       return [];
     }
     return listLocalLeasingByPartner(partner.id).sort(
-      (a, b) => statusRank(a.status) - statusRank(b.status) || b.createdAt.localeCompare(a.createdAt),
+      (a, b) => leasingStatusRank(a.status) - leasingStatusRank(b.status) || b.createdAt.localeCompare(a.createdAt),
     );
   }, [partner]);
 
   const rows = useMemo(
-    () => applications.filter((item) => matchesApplicationFilter(item.status, filter)),
+    () => applications.filter((item) => matchesLeasingFilter(item.status, filter)),
     [applications, filter],
   );
 
@@ -46,7 +48,7 @@ export function CabinetPage() {
           Заявка отправлена. Её можно отслеживать в списке ниже.
         </p>
       ) : null}
-      <StatusFilterBar items={applications} value={filter} onChange={setFilter} />
+      <StatusFilterBar items={applications} value={filter} onChange={setFilter} filters={LEASING_FILTERS} />
       <AdminApplicationTable
         rows={rows}
         empty={
@@ -56,6 +58,11 @@ export function CabinetPage() {
         }
         onRowClick={(item) => navigate(`/cabinet/applications/${item.id}`)}
         columns={[
+          {
+            key: "id",
+            label: "Заявка",
+            render: (item) => formatLeasingApplicationNo(item.seq, item.createdAt),
+          },
           {
             key: "asset",
             label: "Предмет",
@@ -85,7 +92,7 @@ export function CabinetPage() {
             key: "status",
             label: "Статус",
             render: (item) => (
-              <span className={`status-pill status-pill--${item.status}`}>{STATUS_LABEL[item.status]}</span>
+              <span className={`status-pill status-pill--${item.status}`}>{LEASING_STATUS_LABEL[item.status]}</span>
             ),
           },
         ]}

@@ -16,6 +16,10 @@
     "check:notifications": "node --experimental-strip-types src/lib/notifications.check.ts",
     "check:status": "node --experimental-strip-types src/lib/status.check.ts",
     "check:application-no": "node --experimental-strip-types src/lib/application-no.check.ts",
+    "check:leasing-status": "node --experimental-strip-types src/lib/leasing-status.check.ts",
+    "check:money": "node --experimental-strip-types src/lib/money.check.ts",
+    "check:insights": "node --experimental-strip-types src/lib/partner-insights.check.ts",
+    "check:archive": "node --experimental-strip-types src/lib/document-archive.check.ts",
     "check:api": "tsx server/api.check.ts"
   },
   "dependencies": {

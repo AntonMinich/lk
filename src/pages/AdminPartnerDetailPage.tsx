@@ -1,22 +1,42 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navigate, useLocation, useParams } from "react-router-dom";
-import { AdminApplicationDetail } from "../components/AdminApplicationDetail";
+import { AdminApplicationDetail, type AdminDetailPane } from "../components/AdminApplicationDetail";
+import { DocumentArchivePane } from "../components/DocumentArchivePane";
+import { PartnerActivityPanel } from "../components/PartnerActivityPanel";
+import { PartnerCommentsPane } from "../components/PartnerCommentsPane";
 import { useAuth } from "../lib/auth";
 import { formatPartnerApplicationNo } from "../lib/application-no";
+import { addArchivedDocument } from "../lib/document-archive";
 import { formatDateTime } from "../lib/format";
+import { leasingForPartnerCard } from "../lib/leasing";
+import { replaceLocalPartnerDocument } from "../lib/local-partners";
 import { formatPhoneDisplay } from "../lib/phone";
-import { partnerDocumentLabel } from "../lib/partner-docs";
+import { partnerDocumentLabel, type PartnerDocumentKey } from "../lib/partner-docs";
+import { getPartnerFile, putStoredFile, savePartnerFiles } from "../lib/partner-files";
 import type { PublicPartner } from "../lib/api";
 import { isDirectoryPartner, type ApplicationStatus } from "../lib/status";
+
+function paneFromPath(pathname: string): AdminDetailPane {
+  if (pathname.endsWith("/history")) {
+    return "history";
+  }
+  if (pathname.endsWith("/archive")) {
+    return "archive";
+  }
+  if (pathname.endsWith("/comments")) {
+    return "comments";
+  }
+  return "main";
+}
 
 export function AdminPartnerDetailPage() {
   const { id } = useParams();
   const location = useLocation();
-  const { listPartners, setPartnerStatus, setPartnerManager } = useAuth();
+  const { listPartners, setPartnerStatus, setPartnerManager, adminName } = useAuth();
   const [partner, setPartner] = useState<PublicPartner | null | undefined>(undefined);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const showHistory = Boolean(id) && location.pathname.endsWith("/history");
+  const pane = paneFromPath(location.pathname);
 
   useEffect(() => {
     if (!id) {
@@ -40,6 +60,13 @@ export function AdminPartnerDetailPage() {
     };
   }, [id, listPartners]);
 
+  const leasingApps = useMemo(() => {
+    if (!partner || !isDirectoryPartner(partner.status)) {
+      return [];
+    }
+    return leasingForPartnerCard(partner.id, partner.companyName, partner.phone);
+  }, [partner]);
+
   if (!id) {
     return <Navigate to="/admin/partners" replace />;
   }
@@ -57,6 +84,11 @@ export function AdminPartnerDetailPage() {
   }
 
   const current = partner;
+  const fromDirectory = location.pathname.startsWith("/admin/directory") || isDirectoryPartner(current.status);
+  const listHref = fromDirectory ? "/admin/directory" : "/admin/partners";
+  const listLabel = fromDirectory ? "Партнеры" : "Заявки на регистрацию";
+  const detailHref = fromDirectory ? `/admin/directory/${current.id}` : `/admin/partners/${current.id}`;
+  const canReplaceDocuments = Boolean(current.responsibleManager);
 
   async function changeStatus(status: ApplicationStatus) {
     setError("");
@@ -82,10 +114,44 @@ export function AdminPartnerDetailPage() {
     setPartner(result.partner);
   }
 
-  const fromDirectory = location.pathname.startsWith("/admin/directory") || isDirectoryPartner(current.status);
-  const listHref = fromDirectory ? "/admin/directory" : "/admin/partners";
-  const listLabel = fromDirectory ? "Партнеры" : "Заявки на регистрацию";
-  const detailHref = fromDirectory ? `/admin/directory/${current.id}` : `/admin/partners/${current.id}`;
+  async function replaceDocument(key: PartnerDocumentKey, file: File) {
+    setError("");
+    setBusy(true);
+    try {
+      const previous = current.documents.find((item) => item.key === key);
+      const stored = await getPartnerFile(current.phone, key);
+      if (previous) {
+        const archived = addArchivedDocument({
+          partnerId: current.id,
+          phone: current.phone,
+          docKey: key,
+          fileName: previous.fileName,
+          size: previous.size,
+          mime: previous.mime,
+          actor: adminName,
+        });
+        if (stored) {
+          await putStoredFile(archived.storageKey, stored);
+        }
+      }
+      await savePartnerFiles({ phone: current.phone, files: { [key]: file } });
+      const updated = replaceLocalPartnerDocument(
+        current.id,
+        key,
+        { fileName: file.name, size: file.size, mime: file.type || "application/octet-stream" },
+        adminName,
+      );
+      if (!updated) {
+        setError("Не удалось заменить документ");
+        return;
+      }
+      setPartner(updated);
+    } catch (item: unknown) {
+      setError(item instanceof Error ? item.message : "Не удалось заменить документ");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <AdminApplicationDetail
@@ -99,9 +165,20 @@ export function AdminPartnerDetailPage() {
       history={current.history}
       historyHref={`${detailHref}/history`}
       backHref={detailHref}
-      showHistory={showHistory}
+      backLabel={fromDirectory ? "К партнёру" : "К заявке"}
+      pane={pane}
+      extraLinks={[
+        { to: `${detailHref}/archive`, label: "Архив документов", active: pane === "archive" },
+        {
+          to: `${detailHref}/comments`,
+          label: "Комментарий",
+          active: pane === "comments",
+        },
+      ]}
       busy={busy}
       error={error}
+      canReplaceDocuments={canReplaceDocuments}
+      onReplaceDocument={(key, file) => void replaceDocument(key, file)}
       onAccept={() => void changeStatus("accepted")}
       onApprove={() => void changeStatus("approved")}
       onReject={() => void changeStatus("rejected")}
@@ -116,6 +193,7 @@ export function AdminPartnerDetailPage() {
         { label: "Email", value: current.email },
         { label: "Дата заявки", value: formatDateTime(current.createdAt) },
       ]}
+      extraContent={isDirectoryPartner(current.status) ? <PartnerActivityPanel applications={leasingApps} /> : null}
       documents={current.documents.map((item) => ({
         label: partnerDocumentLabel(item.key),
         fileName: item.fileName,
@@ -123,6 +201,13 @@ export function AdminPartnerDetailPage() {
         key: item.key,
         phone: current.phone,
       }))}
+      archiveContent={<DocumentArchivePane partnerId={current.id} />}
+      commentsContent={
+        <PartnerCommentsPane
+          partnerId={current.id}
+          author={adminName}
+        />
+      }
     />
   );
 }
