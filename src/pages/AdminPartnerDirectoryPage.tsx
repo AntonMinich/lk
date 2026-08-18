@@ -1,17 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AdminApplicationTable } from "../components/AdminApplicationTable";
+import { StatusFilterBar } from "../components/StatusFilterBar";
 import { PageHeader } from "../components/ui/PageHeader";
 import { useAuth } from "../lib/auth";
 import { formatDateTime } from "../lib/format";
 import { formatPhoneDisplay } from "../lib/phone";
-import { isDirectoryPartner, STATUS_LABEL, statusRank } from "../lib/status";
+import {
+  DIRECTORY_FILTERS,
+  isDirectoryPartner,
+  matchesDirectoryFilter,
+  STATUS_LABEL,
+  statusRank,
+  type DirectoryFilterKey,
+} from "../lib/status";
 import type { PublicPartner } from "../lib/api";
 
 export function AdminPartnerDirectoryPage() {
   const { listPartners } = useAuth();
   const navigate = useNavigate();
   const [partners, setPartners] = useState<PublicPartner[]>([]);
+  const [filter, setFilter] = useState<DirectoryFilterKey>("all");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -34,21 +43,34 @@ export function AdminPartnerDirectoryPage() {
     };
   }, [listPartners]);
 
-  const rows = useMemo(
+  const directory = useMemo(
     () =>
       partners
         .filter((item) => isDirectoryPartner(item.status))
         .sort((a, b) => statusRank(a.status) - statusRank(b.status) || a.companyName.localeCompare(b.companyName)),
     [partners],
   );
+  const rows = useMemo(
+    () => directory.filter((item) => matchesDirectoryFilter(item.status, filter)),
+    [directory, filter],
+  );
 
   return (
     <section className="admin-page">
-      <PageHeader title="Партнеры" subtitle={`${rows.length} активных партнёров`} />
+      <PageHeader
+        title="Партнеры"
+        subtitle={`${directory.length} пользователей`}
+        actions={
+          <Link to="/admin/directory/new" className="primary-btn">
+            Создать партнёра
+          </Link>
+        }
+      />
+      <StatusFilterBar items={directory} value={filter} onChange={setFilter} filters={DIRECTORY_FILTERS} />
       {error ? <p className="field__error">{error}</p> : null}
       <AdminApplicationTable
         rows={rows}
-        empty="Пока нет активных партнёров. Они появляются здесь после входа в кабинет."
+        empty="Пока нет партнёров. Создайте партнёра или дождитесь входа в кабинет."
         onRowClick={(item) => navigate(`/admin/directory/${item.id}`)}
         columns={[
           {

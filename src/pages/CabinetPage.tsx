@@ -1,39 +1,18 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { AdminApplicationTable } from "../components/AdminApplicationTable";
-import { StatusFilterBar } from "../components/StatusFilterBar";
-import { PageHeader } from "../components/ui/PageHeader";
+import { LeasingQueue } from "../components/LeasingQueue";
 import { useAuth } from "../lib/auth";
-import { formatDateTime } from "../lib/format";
-import { formatLeasingApplicationNo } from "../lib/application-no";
-import { listLocalLeasingByPartner } from "../lib/leasing";
-import {
-  LEASING_FILTERS,
-  LEASING_STATUS_LABEL,
-  leasingStatusRank,
-  matchesLeasingFilter,
-  type LeasingFilterKey,
-} from "../lib/leasing-status";
+import { listLocalLeasingByPartnerPipeline } from "../lib/leasing";
+import { LEASING_APPLICATION_FILTERS } from "../lib/leasing-status";
 
 export function CabinetPage() {
   const { partner } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const created = Boolean((location.state as { created?: boolean } | null)?.created);
-  const [filter, setFilter] = useState<LeasingFilterKey>("all");
-
-  const applications = useMemo(() => {
-    if (!partner) {
-      return [];
-    }
-    return listLocalLeasingByPartner(partner.id).sort(
-      (a, b) => leasingStatusRank(a.status) - leasingStatusRank(b.status) || b.createdAt.localeCompare(a.createdAt),
-    );
-  }, [partner]);
-
-  const rows = useMemo(
-    () => applications.filter((item) => matchesLeasingFilter(item.status, filter)),
-    [applications, filter],
+  const items = useMemo(
+    () => (partner ? listLocalLeasingByPartnerPipeline(partner.id, "application") : []),
+    [partner],
   );
 
   if (!partner) {
@@ -41,62 +20,23 @@ export function CabinetPage() {
   }
 
   return (
-    <section className="admin-page">
-      <PageHeader title="Мои заявки" subtitle={`${applications.length} заявок на лизинг`} />
-      {created ? (
-        <p className="banner banner--ok" role="status">
-          Заявка отправлена. Её можно отслеживать в списке ниже.
-        </p>
-      ) : null}
-      <StatusFilterBar items={applications} value={filter} onChange={setFilter} filters={LEASING_FILTERS} />
-      <AdminApplicationTable
-        rows={rows}
-        empty={
-          applications.length === 0
-            ? "Пока нет заявок. Нажмите «Создать заявку»."
-            : "Нет заявок в этом отборе."
-        }
-        onRowClick={(item) => navigate(`/cabinet/applications/${item.id}`)}
-        columns={[
-          {
-            key: "id",
-            label: "Заявка",
-            render: (item) => formatLeasingApplicationNo(item.seq, item.createdAt),
-          },
-          {
-            key: "asset",
-            label: "Предмет",
-            render: (item) => item.asset || "—",
-          },
-          {
-            key: "amount",
-            label: "Сумма",
-            render: (item) => item.amount || "—",
-          },
-          {
-            key: "term",
-            label: "Срок, мес.",
-            render: (item) => item.termMonths || "—",
-          },
-          {
-            key: "manager",
-            label: "Менеджер",
-            render: (item) => item.responsibleManager || "—",
-          },
-          {
-            key: "date",
-            label: "Дата",
-            render: (item) => formatDateTime(item.createdAt),
-          },
-          {
-            key: "status",
-            label: "Статус",
-            render: (item) => (
-              <span className={`status-pill status-pill--${item.status}`}>{LEASING_STATUS_LABEL[item.status]}</span>
-            ),
-          },
-        ]}
-      />
-    </section>
+    <LeasingQueue
+      title="Мои заявки"
+      subtitle={`${items.length} заявок на лизинг`}
+      banner={
+        created ? (
+          <p className="banner banner--ok" role="status">
+            Заявка отправлена. Её можно отслеживать в списке ниже.
+          </p>
+        ) : null
+      }
+      items={items}
+      filters={LEASING_APPLICATION_FILTERS}
+      onRowClick={(item) => navigate(`/cabinet/applications/${item.id}`)}
+      empty="Пока нет заявок. Нажмите «Создать заявку»."
+      emptyFilter="Нет заявок в этом отборе."
+      showCompany={false}
+      showPhone={false}
+    />
   );
 }

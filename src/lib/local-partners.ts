@@ -1,3 +1,4 @@
+import { PARTNER_PASSWORD } from "../../shared/partner-password.ts";
 import { findAdmin, isAdminLogin } from "../../shared/admin.ts";
 import { fillApplicationSeq, applicationSeqChanged, nextApplicationSeq } from "../../shared/application-no.ts";
 import { createHistoryEvent, createdHistoryEvent, ensureHistory, type HistoryEvent } from "../../shared/history.ts";
@@ -76,6 +77,7 @@ function readAll(): StoredPartner[] {
       unp: item.unp ?? "",
       email: item.email ?? "",
       documents: Array.isArray(item.documents) ? item.documents : [],
+      password: PARTNER_PASSWORD,
       status: normalizeStatus(item.status),
       responsibleManager: item.responsibleManager || item.activatedBy || "",
       activatedBy: item.activatedBy ?? "",
@@ -83,7 +85,8 @@ function readAll(): StoredPartner[] {
       history: ensureHistory(item.history, item.createdAt),
     }));
     const numbered = fillApplicationSeq(mapped);
-    if (applicationSeqChanged(mapped, numbered)) {
+    const passwordChanged = parsed.some((item) => item.password !== PARTNER_PASSWORD);
+    if (passwordChanged || applicationSeqChanged(mapped, numbered)) {
       writeAll(numbered);
     }
     return numbered;
@@ -144,7 +147,7 @@ export function registerLocalPartner(input: {
   const partner: StoredPartner = {
     id: crypto.randomUUID(),
     phone: input.phone,
-    password: input.password,
+    password: PARTNER_PASSWORD,
     companyName: input.companyName,
     contactName: input.contactName,
     unp: input.unp ?? "",
@@ -168,6 +171,49 @@ export function registerLocalPartner(input: {
   return { ok: true, partner: toPublic(partner) };
 }
 
+export function createLocalPartnerByAdmin(
+  input: {
+    phone: string;
+    companyName: string;
+    contactName: string;
+    unp?: string;
+    email?: string;
+    documents?: PartnerDocument[];
+  },
+  actor = "",
+): { ok: true; partner: PublicPartner } | { ok: false; message: string } {
+  const partners = readAll();
+  if (partners.some((item) => item.phone === input.phone)) {
+    return { ok: false, message: "Партнёр с таким номером уже зарегистрирован" };
+  }
+  if (input.unp && partners.some((item) => item.unp === input.unp)) {
+    return { ok: false, message: "Партнёр с таким УНП уже зарегистрирован" };
+  }
+  const createdAt = new Date().toISOString();
+  const partner: StoredPartner = {
+    id: crypto.randomUUID(),
+    phone: input.phone,
+    password: PARTNER_PASSWORD,
+    companyName: input.companyName,
+    contactName: input.contactName,
+    unp: input.unp ?? "",
+    email: input.email ?? "",
+    documents: sanitizePartnerDocuments(input.documents),
+    createdAt,
+    seq: nextApplicationSeq(partners),
+    status: "active",
+    responsibleManager: actor,
+    activatedBy: actor,
+    activatedAt: createdAt,
+    history: [
+      createdHistoryEvent(createdAt),
+      createHistoryEvent({ actor, text: "Партнёр создан администратором" }),
+    ],
+  };
+  writeAll([...partners, partner]);
+  return { ok: true, partner: toPublic(partner) };
+}
+
 export function loginLocalPartner(
   phone: string,
   password: string,
@@ -176,7 +222,7 @@ export function loginLocalPartner(
   if (!found) {
     return { ok: false, message: "Партнёр с таким номером не зарегистрирован" };
   }
-  if (found.password !== password) {
+  if (password !== PARTNER_PASSWORD) {
     return { ok: false, message: "Неверный пароль" };
   }
   const blocked = loginBlockedMessage(found.status);

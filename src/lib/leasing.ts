@@ -5,7 +5,12 @@ import { addNotification } from "./notifications";
 import { formatAmountByn } from "./money";
 import {
   LEASING_STATUS_LABEL,
+  leasingAdminPath,
+  leasingCabinetPath,
+  normalizeLeasingPipeline,
   normalizeLeasingStatus,
+  pipelineAfterStatusChange,
+  type LeasingPipeline,
   type LeasingStatus,
 } from "./leasing-status";
 
@@ -21,6 +26,7 @@ export type LeasingApplication = {
   termMonths: string;
   createdAt: string;
   status: LeasingStatus;
+  pipeline: LeasingPipeline;
   responsibleManager: string;
   activatedBy: string;
   activatedAt: string;
@@ -32,7 +38,7 @@ const LEASING_KEY = "lk-local-leasing";
 
 const SEED: LeasingApplication[] = [
   {
-    id: "lease-demo-1",
+    id: "lease-demo-draft",
     seq: 1,
     partnerId: "",
     companyName: "ООО «Альфа Транс»",
@@ -42,14 +48,15 @@ const SEED: LeasingApplication[] = [
     amount: "180 000 BYN",
     termMonths: "36",
     createdAt: "2026-08-12T09:20:00.000Z",
-    status: "in_work",
+    status: "draft",
+    pipeline: "application",
     responsibleManager: "",
     activatedBy: "",
     activatedAt: "",
     history: [createdHistoryEvent("2026-08-12T09:20:00.000Z")],
   },
   {
-    id: "lease-demo-2",
+    id: "lease-demo-new",
     seq: 2,
     partnerId: "",
     companyName: "ЧТУП «БелСтрой»",
@@ -59,11 +66,138 @@ const SEED: LeasingApplication[] = [
     amount: "95 000 BYN",
     termMonths: "24",
     createdAt: "2026-08-15T14:05:00.000Z",
-    status: "waiting_originals",
+    status: "new",
+    pipeline: "application",
     responsibleManager: "",
     activatedBy: "",
     activatedAt: "",
     history: [createdHistoryEvent("2026-08-15T14:05:00.000Z")],
+  },
+  {
+    id: "lease-demo-work",
+    seq: 3,
+    partnerId: "",
+    companyName: "ООО «ТехЛизинг»",
+    contactName: "Сергей Ковалёв",
+    phone: "+375447111223",
+    asset: "Погрузчик Toyota 8FD30",
+    amount: "64 500 BYN",
+    termMonths: "36",
+    createdAt: "2026-08-14T11:10:00.000Z",
+    status: "in_work",
+    pipeline: "application",
+    responsibleManager: "",
+    activatedBy: "",
+    activatedAt: "",
+    history: [createdHistoryEvent("2026-08-14T11:10:00.000Z")],
+  },
+  {
+    id: "lease-demo-quest",
+    seq: 4,
+    partnerId: "",
+    companyName: "ИП «Неман Авто»",
+    contactName: "Анна Кравченко",
+    phone: "+375339887766",
+    asset: "Легковой автомобиль Kia K5",
+    amount: "52 300 BYN",
+    termMonths: "36",
+    createdAt: "2026-08-11T08:40:00.000Z",
+    status: "questionnaire",
+    pipeline: "application",
+    responsibleManager: "",
+    activatedBy: "",
+    activatedAt: "",
+    history: [createdHistoryEvent("2026-08-11T08:40:00.000Z")],
+  },
+  {
+    id: "lease-demo-prep",
+    seq: 5,
+    partnerId: "",
+    companyName: "ООО «Гродно Логистик»",
+    contactName: "Павел Жук",
+    phone: "+375447000111",
+    asset: "Фургон Ford Transit",
+    amount: "71 200 BYN",
+    termMonths: "24",
+    createdAt: "2026-08-10T16:00:00.000Z",
+    status: "document_prep",
+    pipeline: "deal",
+    responsibleManager: "",
+    activatedBy: "",
+    activatedAt: "",
+    history: [createdHistoryEvent("2026-08-10T16:00:00.000Z")],
+  },
+  {
+    id: "lease-demo-sign",
+    seq: 6,
+    partnerId: "",
+    companyName: "ЧТУП «БрестТранс»",
+    contactName: "Елена Савчук",
+    phone: "+375339221144",
+    asset: "Тягач Volvo FH",
+    amount: "210 000 BYN",
+    termMonths: "48",
+    createdAt: "2026-08-09T12:25:00.000Z",
+    status: "signing",
+    pipeline: "deal",
+    responsibleManager: "",
+    activatedBy: "",
+    activatedAt: "",
+    history: [createdHistoryEvent("2026-08-09T12:25:00.000Z")],
+  },
+  {
+    id: "lease-demo-originals",
+    seq: 7,
+    partnerId: "",
+    companyName: "ООО «Минск Флит»",
+    contactName: "Дмитрий Орлов",
+    phone: "+375447555666",
+    asset: "Автобус МАЗ 206",
+    amount: "145 000 BYN",
+    termMonths: "48",
+    createdAt: "2026-08-08T09:15:00.000Z",
+    status: "waiting_originals",
+    pipeline: "deal",
+    responsibleManager: "",
+    activatedBy: "",
+    activatedAt: "",
+    history: [createdHistoryEvent("2026-08-08T09:15:00.000Z")],
+  },
+  {
+    id: "lease-demo-done",
+    seq: 8,
+    partnerId: "",
+    companyName: "ООО «Витебск Агро»",
+    contactName: "Мария Лебедь",
+    phone: "+375339010203",
+    asset: "Трактор Belarus 82.1",
+    amount: "88 400 BYN",
+    termMonths: "36",
+    createdAt: "2026-08-05T14:50:00.000Z",
+    status: "completed",
+    pipeline: "deal",
+    responsibleManager: "",
+    activatedBy: "",
+    activatedAt: "",
+    history: [createdHistoryEvent("2026-08-05T14:50:00.000Z")],
+  },
+  {
+    id: "lease-demo-cancel",
+    seq: 9,
+    partnerId: "",
+    companyName: "ИП «Гомель Сервис»",
+    contactName: "Никита Волков",
+    phone: "+375447777888",
+    asset: "Легковой автомобиль Skoda Rapid",
+    amount: "39 900 BYN",
+    termMonths: "24",
+    createdAt: "2026-08-04T10:05:00.000Z",
+    status: "cancelled",
+    pipeline: "application",
+    responsibleManager: "",
+    activatedBy: "",
+    activatedAt: "",
+    history: [createdHistoryEvent("2026-08-04T10:05:00.000Z")],
   },
 ];
 
@@ -162,11 +296,13 @@ const PARTNER_DEMO: PartnerDemoRow[] = [
 ];
 
 function normalize(item: LeasingApplication): LeasingApplication {
+  const status = normalizeLeasingStatus(item.status);
   return {
     ...item,
     seq: Number(item.seq) > 0 ? Number(item.seq) : 0,
     partnerId: item.partnerId ?? "",
-    status: normalizeLeasingStatus(item.status),
+    status,
+    pipeline: normalizeLeasingPipeline(status, item.pipeline),
     responsibleManager: item.responsibleManager || item.activatedBy || "",
     activatedBy: item.activatedBy ?? "",
     activatedAt: item.activatedAt ?? "",
@@ -228,6 +364,7 @@ function buildPartnerDemo(partnerId: string, companyName: string, phone: string)
       termMonths: row.termMonths,
       createdAt: row.createdAt,
       status: row.status,
+      pipeline: normalizeLeasingPipeline(row.status),
       responsibleManager: "",
       activatedBy: "",
       activatedAt: "",
@@ -256,8 +393,19 @@ export function listLocalLeasing(): LeasingApplication[] {
   return readAll();
 }
 
+export function listLocalLeasingByPipeline(pipeline: LeasingPipeline): LeasingApplication[] {
+  return readAll().filter((item) => item.pipeline === pipeline);
+}
+
 export function listLocalLeasingByPartner(partnerId: string): LeasingApplication[] {
   return readAll().filter((item) => item.partnerId === partnerId);
+}
+
+export function listLocalLeasingByPartnerPipeline(
+  partnerId: string,
+  pipeline: LeasingPipeline,
+): LeasingApplication[] {
+  return listLocalLeasingByPartner(partnerId).filter((item) => item.pipeline === pipeline);
 }
 
 export function getLocalLeasing(id: string): LeasingApplication | null {
@@ -272,9 +420,11 @@ export function createLocalLeasing(input: {
   asset: string;
   amount: string;
   termMonths: string;
+  status?: "draft" | "new";
 }): LeasingApplication {
   const items = readAll();
   const createdAt = new Date().toISOString();
+  const status = input.status ?? "new";
   const application: LeasingApplication = {
     id: crypto.randomUUID(),
     seq: nextApplicationSeq(items),
@@ -286,19 +436,22 @@ export function createLocalLeasing(input: {
     amount: input.amount,
     termMonths: input.termMonths,
     createdAt,
-    status: "in_work",
+    status,
+    pipeline: "application",
     responsibleManager: "",
     activatedBy: "",
     activatedAt: "",
     history: [createdHistoryEvent(createdAt)],
   };
   writeAll([...items, application]);
-  addNotification({
-    audience: "admin",
-    title: "Новая заявка на лизинг",
-    text: `${application.companyName} — ${application.asset}`,
-    href: `/admin/leasing/${application.id}`,
-  });
+  if (status !== "draft") {
+    addNotification({
+      audience: "admin",
+      title: "Новая заявка на лизинг",
+      text: `${application.companyName} — ${application.asset}`,
+      href: leasingAdminPath(application.id, application.pipeline),
+    });
+  }
   return application;
 }
 
@@ -319,6 +472,7 @@ export function setLocalLeasingStatus(
   const next: LeasingApplication = {
     ...current,
     status,
+    pipeline: pipelineAfterStatusChange(status, current.pipeline),
     history: [
       ...current.history,
       createHistoryEvent({
@@ -333,9 +487,9 @@ export function setLocalLeasingStatus(
     addNotification({
       audience: "partner",
       partnerId: next.partnerId,
-      title: "Заявка на лизинг",
+      title: next.pipeline === "deal" ? "Сделка" : "Заявка на лизинг",
       text: `${next.asset || "Заявка"}: ${LEASING_STATUS_LABEL[next.status]}`,
-      href: `/cabinet/applications/${next.id}`,
+      href: leasingCabinetPath(next.id, next.pipeline),
     });
   }
   return next;
@@ -377,7 +531,7 @@ export function setLocalLeasingManager(
       partnerId: next.partnerId,
       title: "Назначен менеджер",
       text: `${next.asset || "Заявка"}: ${next.responsibleManager}`,
-      href: `/cabinet/applications/${next.id}`,
+      href: leasingCabinetPath(next.id, next.pipeline),
     });
   }
   return { ok: true, application: next };

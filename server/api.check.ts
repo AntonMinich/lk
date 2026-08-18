@@ -126,7 +126,7 @@ try {
 
   const pendingLogin = await api("/api/login", {
     method: "POST",
-    body: JSON.stringify({ phone: "+375447574025", password: "test123" }),
+    body: JSON.stringify({ phone: "+375447574025", password: "111111" }),
   });
   assert.equal(pendingLogin.status, 403);
   assert.match(String(pendingLogin.data.message), /не одобрена/i);
@@ -218,7 +218,7 @@ try {
 
   const login = await api("/api/login", {
     method: "POST",
-    body: JSON.stringify({ phone: "+375447574025", password: "test123" }),
+    body: JSON.stringify({ phone: "+375447574025", password: "111111" }),
   });
   assert.equal(login.status, 200);
   assert.equal(login.data.partner?.phone, "+375447574025");
@@ -254,7 +254,7 @@ try {
 
   const rejectedLogin = await api("/api/login", {
     method: "POST",
-    body: JSON.stringify({ phone: "+375447574025", password: "test123" }),
+    body: JSON.stringify({ phone: "+375447574025", password: "111111" }),
   });
   assert.equal(rejectedLogin.status, 403);
   assert.match(String(rejectedLogin.data.message), /отклонена/i);

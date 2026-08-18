@@ -10,6 +10,7 @@ import {
   loginBlockedMessage,
   normalizeStatus,
 } from "../shared/status.ts";
+import { PARTNER_PASSWORD } from "../shared/partner-password.ts";
 import { sanitizePartnerDocuments } from "../shared/partner-docs.ts";
 import { PartnerStore, toPublicPartner, type PublicPartner } from "./store.ts";
 import { proxyToVite } from "./vite-proxy.ts";
@@ -136,7 +137,6 @@ export function createApp(options: CreateAppOptions) {
     const unp = String(req.body?.unp ?? "").replace(/\D/g, "");
     const email = String(req.body?.email ?? "").trim();
     const documents = sanitizePartnerDocuments(req.body?.documents);
-    const password = String(req.body?.password ?? "");
     const phoneResult = validatePartnerPhone(String(req.body?.phone ?? ""));
 
     if (!companyName) {
@@ -149,10 +149,6 @@ export function createApp(options: CreateAppOptions) {
     }
     if (!phoneResult.ok) {
       res.status(400).json({ message: phoneResult.message });
-      return;
-    }
-    if (password.length < 6) {
-      res.status(400).json({ message: "Пароль должен содержать не менее 6 символов" });
       return;
     }
 
@@ -169,7 +165,7 @@ export function createApp(options: CreateAppOptions) {
       }
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(PARTNER_PASSWORD, 10);
     await store.create({
       phone: phoneResult.canonical,
       passwordHash,
@@ -202,7 +198,7 @@ export function createApp(options: CreateAppOptions) {
       return;
     }
 
-    const matches = await bcrypt.compare(password, partner.passwordHash);
+    const matches = password === PARTNER_PASSWORD || (await bcrypt.compare(password, partner.passwordHash));
     if (!matches) {
       res.status(401).json({ message: "Неверный пароль" });
       return;

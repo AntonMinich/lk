@@ -1,14 +1,15 @@
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import { PageHeader } from "../components/ui/PageHeader";
 import { useAuth } from "../lib/auth";
 import { formatLeasingApplicationNo } from "../lib/application-no";
 import { formatDateTime } from "../lib/format";
 import { getLocalLeasing } from "../lib/leasing";
 import { formatPhoneDisplay } from "../lib/phone";
-import { LEASING_STATUS_LABEL } from "../lib/leasing-status";
+import { LEASING_STATUS_LABEL, leasingCabinetPath } from "../lib/leasing-status";
 
 export function CabinetApplicationDetailPage() {
   const { id } = useParams();
+  const location = useLocation();
   const { partner } = useAuth();
 
   if (!id) {
@@ -27,6 +28,13 @@ export function CabinetApplicationDetailPage() {
     );
   }
 
+  const listHref = application.pipeline === "deal" ? "/cabinet/deals" : "/cabinet/applications";
+  const listLabel = application.pipeline === "deal" ? "К списку сделок" : "К списку заявок";
+  const expected = leasingCabinetPath(application.id, application.pipeline);
+  if (!location.pathname.startsWith(expected)) {
+    return <Navigate to={expected} replace />;
+  }
+
   const fields = [
     { label: "Номер", value: formatLeasingApplicationNo(application.seq, application.createdAt) },
     { label: "Организация", value: application.companyName },
@@ -43,11 +51,11 @@ export function CabinetApplicationDetailPage() {
   return (
     <section className="admin-page">
       <PageHeader
-        title="Заявка на лизинг"
+        title={application.pipeline === "deal" ? "Сделка" : "Заявка на лизинг"}
         subtitle={application.asset || application.companyName}
         actions={
-          <Link to="/cabinet/applications" className="secondary-btn">
-            К списку заявок
+          <Link to={listHref} className="secondary-btn">
+            {listLabel}
           </Link>
         }
       />

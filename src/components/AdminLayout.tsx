@@ -1,6 +1,6 @@
 import { Navigate, NavLink, Outlet } from "react-router-dom";
 import { NotificationBell } from "./NotificationBell";
-import { OsMark } from "./OsMark";
+import { BrandMark } from "./BrandMark";
 import { DemoChip } from "./ui/PageHeader";
 import { UserMenu } from "./UserMenu";
 import { useAuth } from "../lib/auth";
@@ -8,6 +8,7 @@ import { useAuth } from "../lib/auth";
 const NAV = [
   { to: "/admin/partners", label: "Заявки на регистрацию партнера" },
   { to: "/admin/leasing", label: "Заявки на лизинг" },
+  { to: "/admin/deals", label: "Сделки" },
   { to: "/admin/directory", label: "Партнеры" },
 ];
 
@@ -32,7 +33,8 @@ export function AdminLayout() {
     <div className="admin-shell">
       <aside className="admin-sidebar">
         <div className="admin-sidebar__brand">
-          <OsMark subtitle="Админка" />
+          <BrandMark />
+          <p className="admin-sidebar__kicker">Админка</p>
         </div>
         <nav className="admin-nav" aria-label="Разделы админки">
           {NAV.map((item) => (

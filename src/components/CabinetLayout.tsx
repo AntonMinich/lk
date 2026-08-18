@@ -1,6 +1,6 @@
 import { Link, Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import { NotificationBell } from "./NotificationBell";
-import { OsMark } from "./OsMark";
+import { BrandMark } from "./BrandMark";
 import { DemoChip } from "./ui/PageHeader";
 import { UserMenu } from "./UserMenu";
 import { useAuth } from "../lib/auth";
@@ -8,6 +8,7 @@ import { formatPhoneDisplay } from "../lib/phone";
 
 const NAV = [
   { to: "/cabinet/applications", label: "Мои заявки" },
+  { to: "/cabinet/deals", label: "Сделки" },
   { to: "/cabinet/calculator", label: "Калькулятор" },
 ];
 
@@ -39,7 +40,8 @@ export function CabinetLayout() {
     <div className="admin-shell">
       <aside className="admin-sidebar">
         <div className="admin-sidebar__brand">
-          <OsMark subtitle="Кабинет партнёра" />
+          <BrandMark />
+          <p className="admin-sidebar__kicker">Кабинет партнёра</p>
         </div>
         <nav className="admin-nav" aria-label="Разделы кабинета">
           {NAV.map((item) => (

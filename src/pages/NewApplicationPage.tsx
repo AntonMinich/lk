@@ -80,16 +80,41 @@ export function NewApplicationPage() {
       asset: asset.trim(),
       amount: amount.trim(),
       termMonths: termMonths.trim(),
+      status: "new",
     });
     setPending(false);
     navigate("/cabinet/applications", { replace: true, state: { created: true } });
+  }
+
+  function saveDraft() {
+    setFormError("");
+    if (!asset.trim() && !amount.trim()) {
+      setFormError("Укажите предмет лизинга или сумму, чтобы сохранить черновик");
+      return;
+    }
+    const phoneResult = validatePartnerPhone(phone);
+    if (!phoneResult.ok) {
+      setPhoneError(phoneResult.message);
+      return;
+    }
+    createLocalLeasing({
+      partnerId: currentPartner.id,
+      companyName: companyName.trim() || currentPartner.companyName,
+      contactName: contactName.trim() || currentPartner.contactName,
+      phone: phoneResult.canonical,
+      asset: asset.trim() || "Черновик",
+      amount: amount.trim() || "0",
+      termMonths: termMonths.trim() || "0",
+      status: "draft",
+    });
+    navigate("/cabinet/applications", { replace: true });
   }
 
   return (
     <section className="admin-page">
       <PageHeader
         title="Создать заявку на лизинг"
-        subtitle="После отправки заявка появится в списке «Мои заявки»."
+        subtitle="После отправки заявка появится в «Мои заявки». Черновик можно сохранить без отправки."
       />
       <form className="auth-form cabinet-form" onSubmit={handleSubmit} noValidate>
         <div className="field">
@@ -163,10 +188,15 @@ export function NewApplicationPage() {
             {formError}
           </p>
         ) : null}
-        <button type="submit" className="primary-btn" disabled={pending}>
-          {pending ? "Отправляем…" : "Отправить заявку"}
-        </button>
-        <Link to="/cabinet/applications" className="secondary-btn">
+        <div className="register-actions">
+          <button type="button" className="secondary-btn" disabled={pending} onClick={saveDraft}>
+            Сохранить черновик
+          </button>
+          <button type="submit" className="primary-btn" disabled={pending}>
+            {pending ? "Отправляем…" : "Отправить заявку"}
+          </button>
+        </div>
+        <Link to="/cabinet/applications" className="text-link">
           Отмена
         </Link>
       </form>
