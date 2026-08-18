@@ -166,6 +166,14 @@ input {
   font-weight: 600;
 }
 
+.logo__image {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #fff;
+}
+
 .logo__text {
   font-size: 0.95rem;
   font-weight: 500;
@@ -271,15 +279,85 @@ input {
   overflow: hidden;
 }
 
+.phone-input {
+  cursor: text;
+}
+
 .phone-input__prefix {
   flex: 0 0 auto;
-  padding: 0 4px 0 14px;
-  color: var(--muted);
-  font-weight: 700;
+  padding: 0 2px 0 14px;
+  color: var(--ink);
+  font-weight: 800;
   letter-spacing: 0.02em;
 }
 
-.phone-input input,
+.phone-input__body {
+  position: relative;
+  flex: 1;
+  min-height: 52px;
+}
+
+.phone-input__mask {
+  position: absolute;
+  inset: 0 14px 0 6px;
+  display: flex;
+  align-items: center;
+  white-space: pre;
+  font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Menlo, monospace;
+  font-size: 1.02rem;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.phone-input__slot {
+  display: inline-flex;
+  align-items: center;
+}
+
+.phone-input__punct {
+  color: #8a8278;
+}
+
+.phone-input__space {
+  width: 0.55em;
+  flex: 0 0 0.55em;
+}
+
+.phone-input__x {
+  color: #9a9388;
+  font-weight: 600;
+}
+
+.phone-input__digit {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.phone-input__caret {
+  width: 1px;
+  height: 1.15em;
+  margin: 0 1px;
+  background: var(--ink);
+  animation: caret-blink 1s step-end infinite;
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.phone-input__control {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-height: 52px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: text;
+}
+
 .password-input input {
   border: 0;
   box-shadow: none;
@@ -318,6 +396,11 @@ input {
 
 .primary-btn:hover {
   background: #16344c;
+}
+
+.primary-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
 }
 
 .secondary-btn {

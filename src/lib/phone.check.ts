@@ -20,4 +20,12 @@ assertEqual(validatePartnerPhone("+375337574025").ok, true, "operator 33");
 assertEqual(validatePartnerPhone("+375257574025").ok, false, "bad operator");
 assertEqual(validatePartnerPhone("+37544757").ok, false, "too short");
 
+const short = validatePartnerPhone("+37544757");
+if (short.ok || !short.message.includes("9 цифр")) {
+  throw new Error("short number must mention digit count");
+}
+
+const empty = validatePartnerPhone("");
+assertEqual(empty.ok, false, "empty phone");
+
 console.log("phone checks passed");

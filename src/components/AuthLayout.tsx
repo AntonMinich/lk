@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { ReactNode } from "react";
+import { BrandMark } from "./BrandMark";
 
 type AuthLayoutProps = {
   title: string;
@@ -14,7 +15,7 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
       <aside className="auth-brand" aria-hidden="true">
         <div className="auth-brand__glow" />
         <Link to="/" className="logo">
-          <span className="logo__mark">LK</span>
+          <BrandMark />
           <span className="logo__text">Кабинет партнёра</span>
         </Link>
         <div className="auth-brand__copy">
@@ -35,7 +36,7 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
       <main className="auth-main">
         <div className="auth-card">
           <Link to="/" className="logo logo--mobile">
-            <span className="logo__mark">LK</span>
+            <BrandMark />
             <span className="logo__text">Кабинет партнёра</span>
           </Link>
           <h1>{title}</h1>
