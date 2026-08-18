@@ -6,13 +6,14 @@ import { PartnerActivityPanel } from "../components/PartnerActivityPanel";
 import { PartnerCommentsPane } from "../components/PartnerCommentsPane";
 import { useAuth } from "../lib/auth";
 import { formatPartnerApplicationNo } from "../lib/application-no";
-import { addArchivedDocument } from "../lib/document-archive";
+import { addArchivedDocument, countArchivedDocuments } from "../lib/document-archive";
 import { formatDateTime } from "../lib/format";
 import { leasingForPartnerCard } from "../lib/leasing";
 import { replaceLocalPartnerDocument } from "../lib/local-partners";
 import { formatPhoneDisplay } from "../lib/phone";
 import { partnerDocumentLabel, type PartnerDocumentKey } from "../lib/partner-docs";
 import { getPartnerFile, putStoredFile, savePartnerFiles } from "../lib/partner-files";
+import { countPartnerComments } from "../lib/partner-comments";
 import type { PublicPartner } from "../lib/api";
 import { isDirectoryPartner, type ApplicationStatus } from "../lib/status";
 
@@ -36,6 +37,7 @@ export function AdminPartnerDetailPage() {
   const [partner, setPartner] = useState<PublicPartner | null | undefined>(undefined);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [notesTick, setNotesTick] = useState(0);
   const pane = paneFromPath(location.pathname);
 
   useEffect(() => {
@@ -167,14 +169,24 @@ export function AdminPartnerDetailPage() {
       backHref={detailHref}
       backLabel={fromDirectory ? "К партнёру" : "К заявке"}
       pane={pane}
-      extraLinks={[
-        { to: `${detailHref}/archive`, label: "Архив документов", active: pane === "archive" },
-        {
-          to: `${detailHref}/comments`,
-          label: "Комментарий",
-          active: pane === "comments",
-        },
-      ]}
+      extraLinks={
+        notesTick >= 0
+          ? [
+              {
+                to: `${detailHref}/archive`,
+                label: "Архив документов",
+                count: countArchivedDocuments(current.id),
+                active: pane === "archive",
+              },
+              {
+                to: `${detailHref}/comments`,
+                label: "Комментарий",
+                count: countPartnerComments(current.id),
+                active: pane === "comments",
+              },
+            ]
+          : []
+      }
       busy={busy}
       error={error}
       canReplaceDocuments={canReplaceDocuments}
@@ -206,6 +218,7 @@ export function AdminPartnerDetailPage() {
         <PartnerCommentsPane
           partnerId={current.id}
           author={adminName}
+          onChange={() => setNotesTick((value) => value + 1)}
         />
       }
     />

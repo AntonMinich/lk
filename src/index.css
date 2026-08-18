@@ -764,6 +764,9 @@ input {
 }
 
 .primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-top: 8px;
   min-height: 36px;
   padding: 0 14px;
@@ -773,11 +776,16 @@ input {
   color: var(--white);
   font-size: 0.875rem;
   font-weight: 500;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
   cursor: pointer;
 }
 
 .primary-btn:hover {
   background: var(--brand-dark);
+  color: var(--white);
+  text-decoration: none;
 }
 
 .primary-btn:disabled {
@@ -1875,8 +1883,8 @@ input {
 }
 
 .admin-status--blocked {
-  border-color: #64748b;
-  background: #f8fafc;
+  border-color: #dc2626;
+  background: #fef2f2;
 }
 
 .admin-status--in_work {
@@ -1980,7 +1988,10 @@ input {
 }
 
 .admin-actions__link {
+  display: block;
   margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
   color: var(--brand);
   font-weight: 600;
   text-decoration: none;
@@ -1988,7 +1999,7 @@ input {
 
 .admin-actions__nav {
   display: grid;
-  gap: 8px;
+  gap: 4px;
   margin-top: 8px;
 }
 
@@ -1997,13 +2008,19 @@ input {
 }
 
 .admin-actions__link.is-active {
+  background: var(--brand-light);
   color: var(--brand-dark);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration: none;
 }
 
 .admin-actions__link:hover {
   color: var(--brand-dark);
+  background: #f1f5f9;
+  text-decoration: none;
+}
+
+.admin-actions__link.is-active:hover {
+  background: var(--brand-light);
 }
 
 .action-btn--ghost {
@@ -2268,8 +2285,8 @@ input {
 }
 
 .status-pill--blocked {
-  background: #f1f5f9;
-  color: #64748b;
+  background: #fef2f2;
+  color: #b91c1c;
 }
 
 .status-pill--in_work {
