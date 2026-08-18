@@ -15,18 +15,23 @@ const app = createApp({
 });
 
 const server = createServer(app);
-const port = 41000 + Math.floor(Math.random() * 8000);
 await new Promise<void>((resolve, reject) => {
   server.once("error", reject);
-  server.listen(port, "127.0.0.1", resolve);
+  server.listen(0, "::1", resolve);
 });
 
-const baseUrl = `http://127.0.0.1:${port}`;
+const address = server.address();
+if (!address || typeof address === "string") {
+  throw new Error("Server did not start");
+}
+
+const baseUrl = `http://[::1]:${address.port}`;
 
 type PartnerPayload = {
   id?: string;
   phone?: string;
   status?: string;
+  activatedBy?: string;
 };
 
 type ApiResponse = {
@@ -137,6 +142,7 @@ try {
   });
   assert.equal(approved.status, 200);
   assert.equal(approved.data.partner?.status, "approved");
+  assert.equal(approved.data.partner?.activatedBy, "admin");
 
   const login = await api("/api/login", {
     method: "POST",

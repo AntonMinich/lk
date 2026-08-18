@@ -13,6 +13,8 @@ export type PartnerRecord = {
   contactName: string;
   createdAt: string;
   status: ApplicationStatus;
+  activatedBy: string;
+  activatedAt: string;
 };
 
 export type PublicPartner = {
@@ -22,10 +24,17 @@ export type PublicPartner = {
   contactName: string;
   createdAt: string;
   status: ApplicationStatus;
+  activatedBy: string;
+  activatedAt: string;
 };
 
 function withStatus(record: PartnerRecord): PartnerRecord {
-  return { ...record, status: normalizeStatus(record.status) };
+  return {
+    ...record,
+    status: normalizeStatus(record.status),
+    activatedBy: record.activatedBy ?? "",
+    activatedAt: record.activatedAt ?? "",
+  };
 }
 
 export function toPublicPartner(record: PartnerRecord): PublicPartner {
@@ -37,6 +46,8 @@ export function toPublicPartner(record: PartnerRecord): PublicPartner {
     contactName: normalized.contactName,
     createdAt: normalized.createdAt,
     status: normalized.status,
+    activatedBy: normalized.activatedBy,
+    activatedAt: normalized.activatedAt,
   };
 }
 
@@ -83,19 +94,34 @@ export class PartnerStore {
       contactName: input.contactName,
       createdAt: new Date().toISOString(),
       status: "pending",
+      activatedBy: "",
+      activatedAt: "",
     };
     partners.push(record);
     await this.write(partners);
     return record;
   }
 
-  async setStatus(id: string, status: ApplicationStatus): Promise<PartnerRecord | undefined> {
+  async setStatus(
+    id: string,
+    status: ApplicationStatus,
+    manager = "",
+  ): Promise<PartnerRecord | undefined> {
     const partners = await this.list();
     const index = partners.findIndex((item) => item.id === id);
     if (index < 0) {
       return undefined;
     }
-    partners[index] = { ...partners[index], status };
+    const current = partners[index];
+    if (!current) {
+      return undefined;
+    }
+    const next: PartnerRecord = { ...current, status };
+    if (status === "approved") {
+      next.activatedBy = manager || current.activatedBy || "";
+      next.activatedAt = new Date().toISOString();
+    }
+    partners[index] = next;
     await this.write(partners);
     return partners[index];
   }

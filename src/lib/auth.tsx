@@ -17,6 +17,7 @@ import {
   clearLocalSession,
   isLocalAdmin,
   listLocalPartners,
+  localAdminName,
   loginLocalAdmin,
   loginLocalPartner,
   readLocalSession,
@@ -32,6 +33,7 @@ type AuthContextValue = {
   apiOnline: boolean;
   partner: PublicPartner | null;
   admin: boolean;
+  adminName: string;
   login: (phone: string, password: string) => Promise<AuthResult>;
   register: (input: {
     phone: string;
@@ -53,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [apiOnline, setApiOnline] = useState(false);
   const [partner, setPartner] = useState<PublicPartner | null>(null);
   const [admin, setAdmin] = useState(false);
+  const [adminName, setAdminName] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -74,18 +77,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
         try {
-          await adminMeRequest();
+          const me = await adminMeRequest();
           if (!cancelled) {
             setAdmin(true);
+            setAdminName(me.login);
           }
         } catch {
           if (!cancelled) {
             setAdmin(false);
+            setAdminName("");
           }
         }
       } else if (!cancelled) {
         setPartner(readLocalSession());
         setAdmin(isLocalAdmin());
+        setAdminName(localAdminName() ?? "");
       }
       if (!cancelled) {
         setReady(true);
@@ -102,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       apiOnline,
       partner,
       admin,
+      adminName,
       login: async (phone, password) => {
         if (apiOnline) {
           try {
@@ -148,8 +155,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loginAdmin: async (login, password) => {
         if (apiOnline) {
           try {
-            await adminLoginRequest(login, password);
+            const data = await adminLoginRequest(login, password);
             setAdmin(true);
+            setAdminName(data.login);
             return { ok: true };
           } catch (error) {
             return {
@@ -161,6 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const result = loginLocalAdmin(login, password);
         if (result.ok) {
           setAdmin(true);
+          setAdminName(result.login);
         }
         return result;
       },
@@ -170,11 +179,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             await adminLogoutRequest();
           } finally {
             setAdmin(false);
+            setAdminName("");
           }
           return;
         }
         clearLocalAdmin();
         setAdmin(false);
+        setAdminName("");
       },
       listPartners: async () => {
         if (apiOnline) {
@@ -195,14 +206,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             };
           }
         }
-        const updated = setLocalPartnerStatus(id, status);
+        const updated = setLocalPartnerStatus(id, status, adminName);
         if (!updated) {
           return { ok: false, message: "Заявка не найдена" };
         }
         return { ok: true };
       },
     }),
-    [admin, apiOnline, partner, ready],
+    [admin, adminName, apiOnline, partner, ready],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

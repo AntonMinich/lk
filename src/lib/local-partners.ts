@@ -8,6 +8,8 @@ export type PublicPartner = {
   contactName: string;
   createdAt: string;
   status: ApplicationStatus;
+  activatedBy: string;
+  activatedAt: string;
 };
 
 type StoredPartner = PublicPartner & { password: string };
@@ -25,7 +27,12 @@ function readAll(): StoredPartner[] {
     if (!Array.isArray(parsed)) {
       return [];
     }
-    return parsed.map((item) => ({ ...item, status: normalizeStatus(item.status) }));
+    return parsed.map((item) => ({
+      ...item,
+      status: normalizeStatus(item.status),
+      activatedBy: item.activatedBy ?? "",
+      activatedAt: item.activatedAt ?? "",
+    }));
   } catch {
     return [];
   }
@@ -43,11 +50,18 @@ function toPublic(partner: StoredPartner): PublicPartner {
     contactName: partner.contactName,
     createdAt: partner.createdAt,
     status: normalizeStatus(partner.status),
+    activatedBy: partner.activatedBy ?? "",
+    activatedAt: partner.activatedAt ?? "",
   };
 }
 
 export function listLocalPartners(): PublicPartner[] {
   return readAll().map(toPublic);
+}
+
+export function getLocalPartner(id: string): PublicPartner | null {
+  const found = readAll().find((item) => item.id === id);
+  return found ? toPublic(found) : null;
 }
 
 export function registerLocalPartner(input: {
@@ -68,6 +82,8 @@ export function registerLocalPartner(input: {
     contactName: input.contactName,
     createdAt: new Date().toISOString(),
     status: "pending",
+    activatedBy: "",
+    activatedAt: "",
   };
   writeAll([...partners, partner]);
   return { ok: true, partner: toPublic(partner) };
@@ -96,15 +112,25 @@ export function loginLocalPartner(
 export function setLocalPartnerStatus(
   id: string,
   status: ApplicationStatus,
+  manager = "",
 ): PublicPartner | null {
   const partners = readAll();
   const index = partners.findIndex((item) => item.id === id);
   if (index < 0) {
     return null;
   }
-  partners[index] = { ...partners[index], status };
+  const current = partners[index];
+  if (!current) {
+    return null;
+  }
+  const next: StoredPartner = { ...current, status };
+  if (status === "approved") {
+    next.activatedBy = manager || current.activatedBy || "";
+    next.activatedAt = new Date().toISOString();
+  }
+  partners[index] = next;
   writeAll(partners);
-  return toPublic(partners[index]);
+  return toPublic(next);
 }
 
 export function readLocalSession(): PublicPartner | null {
@@ -114,7 +140,12 @@ export function readLocalSession(): PublicPartner | null {
       return null;
     }
     const parsed = JSON.parse(raw) as PublicPartner;
-    const partner = { ...parsed, status: normalizeStatus(parsed.status) };
+    const partner = {
+      ...parsed,
+      status: normalizeStatus(parsed.status),
+      activatedBy: parsed.activatedBy ?? "",
+      activatedAt: parsed.activatedAt ?? "",
+    };
     if (loginBlockedMessage(partner.status)) {
       sessionStorage.removeItem(SESSION_KEY);
       return null;
@@ -132,16 +163,21 @@ export function clearLocalSession() {
 export function loginLocalAdmin(
   login: string,
   password: string,
-): { ok: true } | { ok: false; message: string } {
-  if (login.trim() !== ADMIN_DEMO.login || password !== ADMIN_DEMO.password) {
+): { ok: true; login: string } | { ok: false; message: string } {
+  const name = login.trim();
+  if (name !== ADMIN_DEMO.login || password !== ADMIN_DEMO.password) {
     return { ok: false, message: "Неверный логин или пароль администратора" };
   }
-  sessionStorage.setItem(ADMIN_KEY, "1");
-  return { ok: true };
+  sessionStorage.setItem(ADMIN_KEY, name);
+  return { ok: true, login: name };
+}
+
+export function localAdminName(): string | null {
+  return sessionStorage.getItem(ADMIN_KEY);
 }
 
 export function isLocalAdmin(): boolean {
-  return sessionStorage.getItem(ADMIN_KEY) === "1";
+  return Boolean(localAdminName());
 }
 
 export function clearLocalAdmin() {
