@@ -22,6 +22,24 @@ const PARTNERS_KEY = "lk-local-partners";
 const SESSION_KEY = "lk-local-session";
 const ADMIN_KEY = "lk-admin-session";
 
+function storageGet(key: string): string | null {
+  try {
+    return localStorage.getItem(key) ?? sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function storageSet(key: string, value: string) {
+  localStorage.setItem(key, value);
+  sessionStorage.removeItem(key);
+}
+
+function storageRemove(key: string) {
+  localStorage.removeItem(key);
+  sessionStorage.removeItem(key);
+}
+
 export { ADMIN_ACCOUNTS, adminLogins, ADMIN_DEMO } from "../../shared/admin.ts";
 
 function workflowOf(partner: StoredPartner) {
@@ -126,7 +144,7 @@ export function loginLocalPartner(
     return { ok: false, message: blocked };
   }
   const partner = toPublic(found);
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(partner));
+  writeLocalSession(partner);
   return { ok: true, partner };
 }
 
@@ -177,16 +195,20 @@ export function setLocalPartnerManager(
   return { ok: true, partner: toPublic(next) };
 }
 
+export function writeLocalSession(partner: PublicPartner) {
+  storageSet(SESSION_KEY, JSON.stringify(toPublic({ ...partner, password: "" })));
+}
+
 export function readLocalSession(): PublicPartner | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = storageGet(SESSION_KEY);
     if (!raw) {
       return null;
     }
     const parsed = JSON.parse(raw) as PublicPartner;
     const partner = toPublic({ ...parsed, password: "" });
     if (loginBlockedMessage(partner.status)) {
-      sessionStorage.removeItem(SESSION_KEY);
+      storageRemove(SESSION_KEY);
       return null;
     }
     return partner;
@@ -196,7 +218,7 @@ export function readLocalSession(): PublicPartner | null {
 }
 
 export function clearLocalSession() {
-  sessionStorage.removeItem(SESSION_KEY);
+  storageRemove(SESSION_KEY);
 }
 
 export function loginLocalAdmin(
@@ -207,12 +229,16 @@ export function loginLocalAdmin(
   if (!found) {
     return { ok: false, message: "Неверный логин или пароль администратора" };
   }
-  sessionStorage.setItem(ADMIN_KEY, found.login);
+  writeLocalAdmin(found.login);
   return { ok: true, login: found.login };
 }
 
+export function writeLocalAdmin(login: string) {
+  storageSet(ADMIN_KEY, login);
+}
+
 export function localAdminName(): string | null {
-  return sessionStorage.getItem(ADMIN_KEY);
+  return storageGet(ADMIN_KEY);
 }
 
 export function isLocalAdmin(): boolean {
@@ -220,5 +246,5 @@ export function isLocalAdmin(): boolean {
 }
 
 export function clearLocalAdmin() {
-  sessionStorage.removeItem(ADMIN_KEY);
+  storageRemove(ADMIN_KEY);
 }

@@ -23,6 +23,7 @@ export async function isApiOnline(): Promise<boolean> {
   try {
     const response = await fetch("/api/health", {
       headers: { Accept: "application/json" },
+      cache: "no-store",
     });
     if (!response.ok) {
       return false;

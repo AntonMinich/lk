@@ -6,7 +6,7 @@ import { useAuth } from "../lib/auth";
 import { validatePartnerPhone } from "../lib/phone";
 
 export function LoginPage() {
-  const { ready, partner, login } = useAuth();
+  const { ready, partner, admin, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const registered = Boolean((location.state as { registered?: boolean } | null)?.registered);
@@ -20,6 +20,10 @@ export function LoginPage() {
 
   if (!ready) {
     return null;
+  }
+
+  if (admin) {
+    return <Navigate to="/admin/partners" replace />;
   }
 
   if (partner) {
