@@ -320,6 +320,22 @@ input {
   background: #16344c;
 }
 
+.secondary-btn {
+  display: grid;
+  place-items: center;
+  min-height: 52px;
+  border: 1px solid var(--navy);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--navy);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.secondary-btn:hover {
+  background: rgba(11, 28, 44, 0.05);
+}
+
 .link-button {
   color: var(--navy);
   font-weight: 800;

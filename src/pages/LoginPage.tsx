@@ -50,14 +50,6 @@ export function LoginPage() {
     <AuthLayout
       title="Вход в кабинет"
       subtitle="Укажите номер телефона и пароль, выданные при подключении."
-      footer={
-        <p className="auth-alt">
-          Ещё не партнёр?{" "}
-          <Link to="/register" className="link-button">
-            Регистрация партнёра
-          </Link>
-        </p>
-      }
     >
       {registered && (
         <p className="banner banner--ok" role="status">
@@ -108,6 +100,10 @@ export function LoginPage() {
         <button type="submit" className="primary-btn">
           Войти
         </button>
+
+        <Link to="/register" className="secondary-btn">
+          Регистрация партнёра
+        </Link>
       </form>
     </AuthLayout>
   );
