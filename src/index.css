@@ -1,19 +1,21 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@500;600;700&display=swap");
 
 :root {
-  --navy: #0b1c2c;
-  --navy-2: #143047;
-  --gold: #d4a017;
-  --gold-soft: #f3d48a;
-  --paper: #f4efe6;
-  --card: #fffcf7;
-  --ink: #16202c;
-  --muted: #66707c;
-  --line: #e6ddd0;
-  --danger: #b42318;
-  --ok: #0f7a4a;
-  --ok-bg: #e8f6ee;
-  --shadow: 0 24px 60px rgba(11, 28, 44, 0.14);
+  --blue: #101954;
+  --mint: #01f69b;
+  --green: #0d3e36;
+  --white: #ffffff;
+  --black: #000000;
+  --navy: var(--blue);
+  --paper: #070b24;
+  --card: var(--white);
+  --ink: var(--blue);
+  --muted: #5c6490;
+  --line: #d8dcec;
+  --danger: #e23b4a;
+  --ok: var(--green);
+  --ok-bg: #e7fff6;
+  --shadow: 0 24px 60px rgba(16, 25, 84, 0.18);
   --radius: 18px;
 }
 
@@ -32,7 +34,7 @@ body,
 body {
   margin: 0;
   color: var(--ink);
-  background: var(--paper);
+  background: var(--black);
   font-family: Manrope, "Segoe UI", sans-serif;
   font-size: 16px;
   line-height: 1.5;
@@ -42,7 +44,7 @@ h1,
 h2,
 .logo__text,
 .auth-brand__kicker {
-  font-family: Unbounded, Manrope, sans-serif;
+  font-family: Outfit, Manrope, sans-serif;
 }
 
 h1,
@@ -80,11 +82,11 @@ input {
 .auth-brand {
   position: relative;
   overflow: hidden;
-  color: #f6f0e4;
+  color: var(--white);
   background:
-    radial-gradient(1200px 500px at -10% 110%, rgba(212, 160, 23, 0.22), transparent 55%),
-    radial-gradient(700px 400px at 110% -10%, rgba(255, 255, 255, 0.08), transparent 50%),
-    linear-gradient(165deg, var(--navy) 0%, var(--navy-2) 100%);
+    radial-gradient(900px 420px at 110% 120%, rgba(1, 246, 155, 0.22), transparent 58%),
+    radial-gradient(700px 400px at -20% -10%, rgba(1, 246, 155, 0.08), transparent 50%),
+    linear-gradient(165deg, var(--blue) 0%, #0a1038 58%, var(--black) 100%);
   padding: 36px 48px 48px;
   display: flex;
   flex-direction: column;
@@ -94,11 +96,15 @@ input {
 .auth-brand__glow {
   position: absolute;
   inset: auto -80px -120px auto;
-  width: 340px;
-  height: 340px;
+  width: 360px;
+  height: 360px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(212, 160, 23, 0.28), transparent 68%);
+  background: radial-gradient(circle, rgba(1, 246, 155, 0.28), transparent 68%);
   pointer-events: none;
+}
+
+.auth-brand__top {
+  position: relative;
 }
 
 .auth-brand__copy {
@@ -108,14 +114,14 @@ input {
 
 .auth-brand__copy p,
 .auth-brand__points {
-  color: rgba(246, 240, 228, 0.78);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .auth-brand__kicker {
   margin: 0 0 12px;
-  color: var(--gold-soft);
+  color: var(--mint);
   font-size: 0.78rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -141,42 +147,47 @@ input {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--gold);
+  background: var(--mint);
 }
 
 .logo {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   text-decoration: none;
   color: inherit;
 }
 
-.logo__mark {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: var(--gold);
-  color: var(--navy);
-  font-family: Unbounded, sans-serif;
-  font-size: 0.95rem;
-  font-weight: 600;
+.logo--wordmark {
+  align-items: center;
 }
 
 .logo__image {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  object-fit: cover;
-  background: #fff;
+  display: block;
+  height: 52px;
+  width: auto;
+  max-width: 240px;
+  object-fit: contain;
+  background: transparent;
+}
+
+.auth-brand .logo__image {
+  height: 72px;
+  max-width: 320px;
 }
 
 .logo__text {
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.logo__slogan {
+  margin: 0 0 16px;
+  color: var(--mint);
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .logo--mobile {
@@ -185,10 +196,17 @@ input {
   color: var(--ink);
 }
 
+.logo--mobile .logo__image {
+  height: 48px;
+}
+
 .auth-main {
   display: grid;
   place-items: center;
   padding: 32px 20px;
+  background:
+    radial-gradient(700px 280px at 80% -10%, rgba(1, 246, 155, 0.08), transparent 50%),
+    var(--paper);
 }
 
 .auth-card {
@@ -228,7 +246,7 @@ input {
   min-height: 52px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: #fff;
+  background: var(--white);
 }
 
 .field input {
@@ -238,14 +256,14 @@ input {
 }
 
 .field input::placeholder {
-  color: #9aa3ad;
+  color: #8b92b3;
 }
 
 .field input:focus,
 .phone-input:focus-within,
 .password-input:focus-within {
-  border-color: var(--navy);
-  box-shadow: 0 0 0 4px rgba(11, 28, 44, 0.08);
+  border-color: var(--mint);
+  box-shadow: 0 0 0 4px rgba(1, 246, 155, 0.18);
 }
 
 .field--invalid input,
@@ -315,7 +333,7 @@ input {
 }
 
 .phone-input__punct {
-  color: #8a8278;
+  color: #8b92b3;
 }
 
 .phone-input__space {
@@ -324,7 +342,7 @@ input {
 }
 
 .phone-input__x {
-  color: #9a9388;
+  color: #b0b6d0;
   font-weight: 600;
 }
 
@@ -388,46 +406,47 @@ input {
   min-height: 52px;
   border: 0;
   border-radius: 12px;
-  background: var(--navy);
-  color: #fff;
-  font-weight: 700;
+  background: var(--mint);
+  color: var(--blue);
+  font-weight: 800;
   cursor: pointer;
 }
 
 .primary-btn:hover {
-  background: #16344c;
+  filter: brightness(1.06);
 }
 
 .primary-btn:disabled {
   opacity: 0.65;
   cursor: wait;
+  filter: none;
 }
 
 .secondary-btn {
   display: grid;
   place-items: center;
   min-height: 52px;
-  border: 1px solid var(--navy);
+  border: 1px solid var(--blue);
   border-radius: 12px;
   background: transparent;
-  color: var(--navy);
+  color: var(--blue);
   font-weight: 700;
   text-decoration: none;
 }
 
 .secondary-btn:hover {
-  background: rgba(11, 28, 44, 0.05);
+  background: rgba(16, 25, 84, 0.05);
 }
 
 .link-button {
-  color: var(--navy);
+  color: var(--blue);
   font-weight: 800;
   text-decoration: none;
-  border-bottom: 1px solid var(--gold);
+  border-bottom: 1px solid var(--mint);
 }
 
 .link-button:hover {
-  color: #000;
+  color: var(--green);
 }
 
 .auth-alt {
@@ -445,11 +464,12 @@ input {
 
 .banner--ok {
   background: var(--ok-bg);
-  color: var(--ok);
+  color: var(--green);
 }
 
 .cabinet {
   min-height: 100vh;
+  background: #f4f6fb;
 }
 
 .cabinet__bar {
@@ -457,25 +477,34 @@ input {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  padding: 18px 28px;
-  background: var(--navy);
-  color: #f6f0e4;
+  padding: 16px 28px;
+  background: var(--blue);
+  color: var(--white);
+}
+
+.cabinet__bar .logo__image {
+  height: 40px;
+  max-width: 180px;
 }
 
 .cabinet__user {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: rgba(246, 240, 228, 0.8);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .cabinet__user .ghost-btn {
-  color: var(--gold-soft);
+  color: var(--mint);
 }
 
 .cabinet__main {
   padding: 48px 28px;
   max-width: 760px;
+}
+
+.cabinet__main .auth-brand__kicker {
+  color: var(--green);
 }
 
 @media (max-width: 860px) {
@@ -491,10 +520,14 @@ input {
     display: inline-flex;
   }
 
+  .auth-main {
+    background: #f4f6fb;
+  }
+
   .auth-card {
-    box-shadow: none;
-    border: 0;
-    background: transparent;
-    padding: 12px 0 24px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+    background: var(--card);
+    padding: 28px 22px 24px;
   }
 }

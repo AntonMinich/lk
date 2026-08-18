@@ -17,7 +17,7 @@ export function CabinetPage() {
   return (
     <div className="cabinet">
       <header className="cabinet__bar">
-        <div className="logo">
+        <div className="logo logo--wordmark">
           <BrandMark />
           <span className="logo__text">Кабинет партнёра</span>
         </div>
@@ -29,7 +29,7 @@ export function CabinetPage() {
         </div>
       </header>
       <main className="cabinet__main">
-        <p className="auth-brand__kicker">Макет</p>
+        <p className="auth-brand__kicker">Кабинет партнёра</p>
         <h1>Добро пожаловать{partner.contactName ? `, ${partner.contactName}` : ""}</h1>
         <p className="cabinet__lead">
           {partner.companyName ? `Организация: ${partner.companyName}. ` : ""}
