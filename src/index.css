@@ -541,7 +541,7 @@ input {
 
 .admin-detail {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 240px;
+  grid-template-columns: minmax(0, 1fr) 260px;
   align-items: stretch;
   min-height: 100%;
 }
@@ -566,18 +566,74 @@ input {
   background: #fafbfe;
 }
 
-.admin-actions__title {
-  margin: 0 0 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
+.admin-actions__title:not(:first-child) {
+  margin-top: 14px;
 }
 
 .admin-actions .action-btn {
   width: 100%;
   min-height: 48px;
+}
+
+.admin-actions__manager {
+  margin: 0 0 4px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.admin-actions__form {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-actions__form input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+  outline: none;
+}
+
+.admin-actions__link {
+  margin-top: 8px;
+  color: var(--blue);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.admin-actions__link:hover {
+  color: var(--green);
+}
+
+.action-btn--ghost {
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--blue);
+}
+
+.history-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 14px;
+}
+
+.history-list__item time {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.history-list__item p {
+  margin: 4px 0 0;
+}
+
+.status-pill--accepted {
+  background: #e8eefe;
+  color: var(--blue);
 }
 
 .status-pill--blocked {

@@ -32,6 +32,8 @@ type PartnerPayload = {
   phone?: string;
   status?: string;
   activatedBy?: string;
+  responsibleManager?: string;
+  history?: { text?: string }[];
 };
 
 type ApiResponse = {
@@ -134,6 +136,28 @@ try {
   const application = listed.data.partners?.find((item) => item.phone === "+375447574025");
   assert.equal(application?.status, "pending");
   assert.ok(application?.id);
+  assert.match(String(application.history?.[0]?.text), /поступила/i);
+
+  const accepted = await api(`/api/partners/${application.id}/status`, {
+    method: "PATCH",
+    headers: { Cookie: adminLogin.cookies },
+    body: JSON.stringify({ status: "accepted" }),
+  });
+  assert.equal(accepted.status, 200);
+  assert.equal(accepted.data.partner?.status, "accepted");
+  assert.equal(accepted.data.partner?.responsibleManager, "admin");
+  assert.equal(
+    accepted.data.partner?.history?.some((item) => /принял заявку в работу/i.test(String(item.text))),
+    true,
+  );
+
+  const managerChanged = await api(`/api/partners/${application.id}/manager`, {
+    method: "PATCH",
+    headers: { Cookie: adminLogin.cookies },
+    body: JSON.stringify({ manager: "Ирина" }),
+  });
+  assert.equal(managerChanged.status, 200);
+  assert.equal(managerChanged.data.partner?.responsibleManager, "Ирина");
 
   const approved = await api(`/api/partners/${application.id}/status`, {
     method: "PATCH",
@@ -143,6 +167,7 @@ try {
   assert.equal(approved.status, 200);
   assert.equal(approved.data.partner?.status, "approved");
   assert.equal(approved.data.partner?.activatedBy, "admin");
+  assert.equal(approved.data.partner?.responsibleManager, "Ирина");
 
   const login = await api("/api/login", {
     method: "POST",

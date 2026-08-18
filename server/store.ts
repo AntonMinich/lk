@@ -1,9 +1,11 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { createdHistoryEvent, ensureHistory, type HistoryEvent } from "../shared/history.ts";
 import { normalizeStatus, type ApplicationStatus } from "../shared/status.ts";
+import { applyManagerChange, applyStatusChange } from "../shared/workflow.ts";
 
-export type { ApplicationStatus };
+export type { ApplicationStatus, HistoryEvent };
 
 export type PartnerRecord = {
   id: string;
@@ -13,8 +15,10 @@ export type PartnerRecord = {
   contactName: string;
   createdAt: string;
   status: ApplicationStatus;
+  responsibleManager: string;
   activatedBy: string;
   activatedAt: string;
+  history: HistoryEvent[];
 };
 
 export type PublicPartner = {
@@ -24,21 +28,36 @@ export type PublicPartner = {
   contactName: string;
   createdAt: string;
   status: ApplicationStatus;
+  responsibleManager: string;
   activatedBy: string;
   activatedAt: string;
+  history: HistoryEvent[];
 };
 
-function withStatus(record: PartnerRecord): PartnerRecord {
+function withDefaults(record: PartnerRecord): PartnerRecord {
+  const createdAt = record.createdAt;
   return {
     ...record,
     status: normalizeStatus(record.status),
+    responsibleManager: record.responsibleManager || record.activatedBy || "",
     activatedBy: record.activatedBy ?? "",
     activatedAt: record.activatedAt ?? "",
+    history: ensureHistory(record.history, createdAt),
+  };
+}
+
+function workflowOf(record: PartnerRecord) {
+  return {
+    status: record.status,
+    responsibleManager: record.responsibleManager,
+    activatedBy: record.activatedBy,
+    activatedAt: record.activatedAt,
+    history: record.history,
   };
 }
 
 export function toPublicPartner(record: PartnerRecord): PublicPartner {
-  const normalized = withStatus(record);
+  const normalized = withDefaults(record);
   return {
     id: normalized.id,
     phone: normalized.phone,
@@ -46,8 +65,10 @@ export function toPublicPartner(record: PartnerRecord): PublicPartner {
     contactName: normalized.contactName,
     createdAt: normalized.createdAt,
     status: normalized.status,
+    responsibleManager: normalized.responsibleManager,
     activatedBy: normalized.activatedBy,
     activatedAt: normalized.activatedAt,
+    history: normalized.history,
   };
 }
 
@@ -59,7 +80,7 @@ export class PartnerStore {
     try {
       const raw = await readFile(this.filePath, "utf8");
       const parsed = JSON.parse(raw) as PartnerRecord[];
-      return Array.isArray(parsed) ? parsed.map(withStatus) : [];
+      return Array.isArray(parsed) ? parsed.map(withDefaults) : [];
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code;
       if (code === "ENOENT") {
@@ -86,16 +107,19 @@ export class PartnerStore {
     contactName: string;
   }): Promise<PartnerRecord> {
     const partners = await this.list();
+    const createdAt = new Date().toISOString();
     const record: PartnerRecord = {
       id: randomUUID(),
       phone: input.phone,
       passwordHash: input.passwordHash,
       companyName: input.companyName,
       contactName: input.contactName,
-      createdAt: new Date().toISOString(),
+      createdAt,
       status: "pending",
+      responsibleManager: "",
       activatedBy: "",
       activatedAt: "",
+      history: [createdHistoryEvent(createdAt)],
     };
     partners.push(record);
     await this.write(partners);
@@ -116,12 +140,26 @@ export class PartnerStore {
     if (!current) {
       return undefined;
     }
-    const next: PartnerRecord = { ...current, status };
-    if (status === "approved") {
-      next.activatedBy = manager || current.activatedBy || "";
-      next.activatedAt = new Date().toISOString();
+    partners[index] = { ...current, ...applyStatusChange(workflowOf(current), status, manager) };
+    await this.write(partners);
+    return partners[index];
+  }
+
+  async setManager(id: string, manager: string, actor: string): Promise<PartnerRecord | undefined> {
+    const partners = await this.list();
+    const index = partners.findIndex((item) => item.id === id);
+    if (index < 0) {
+      return undefined;
     }
-    partners[index] = next;
+    const current = partners[index];
+    if (!current) {
+      return undefined;
+    }
+    const result = applyManagerChange(workflowOf(current), manager, actor);
+    if (!result.ok) {
+      return undefined;
+    }
+    partners[index] = { ...current, ...result.state };
     await this.write(partners);
     return partners[index];
   }

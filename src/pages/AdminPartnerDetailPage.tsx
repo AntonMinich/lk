@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useLocation, useParams } from "react-router-dom";
 import { AdminApplicationDetail } from "../components/AdminApplicationDetail";
 import { useAuth } from "../lib/auth";
 import { formatDateTime } from "../lib/format";
@@ -9,10 +9,12 @@ import type { ApplicationStatus } from "../lib/status";
 
 export function AdminPartnerDetailPage() {
   const { id } = useParams();
-  const { listPartners, setPartnerStatus } = useAuth();
+  const location = useLocation();
+  const { listPartners, setPartnerStatus, setPartnerManager } = useAuth();
   const [partner, setPartner] = useState<PublicPartner | null | undefined>(undefined);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const showHistory = Boolean(id) && location.pathname.endsWith("/history");
 
   useEffect(() => {
     if (!id) {
@@ -63,20 +65,37 @@ export function AdminPartnerDetailPage() {
       setError(result.message);
       return;
     }
-    const items = await listPartners();
-    setPartner(items.find((item) => item.id === current.id) ?? current);
+    setPartner(result.partner);
+  }
+
+  async function changeManager(name: string) {
+    setError("");
+    setBusy(true);
+    const result = await setPartnerManager(current.id, name);
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.message);
+      return;
+    }
+    setPartner(result.partner);
   }
 
   return (
     <AdminApplicationDetail
       title="Заявка на регистрацию партнера"
       status={current.status}
-      activatedBy={current.activatedBy}
+      manager={current.responsibleManager}
+      history={current.history}
+      historyHref={`/admin/partners/${current.id}/history`}
+      backHref={`/admin/partners/${current.id}`}
+      showHistory={showHistory}
       busy={busy}
       error={error}
+      onAccept={() => void changeStatus("accepted")}
       onApprove={() => void changeStatus("approved")}
       onReject={() => void changeStatus("rejected")}
       onBlock={() => void changeStatus("blocked")}
+      onChangeManager={(name) => void changeManager(name)}
       fields={[
         { label: "Организация", value: current.companyName },
         { label: "Контактное лицо", value: current.contactName },

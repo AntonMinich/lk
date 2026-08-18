@@ -4,20 +4,7 @@ import { AdminApplicationTable } from "../components/AdminApplicationTable";
 import { listLocalLeasing, type LeasingApplication } from "../lib/leasing";
 import { formatDateTime } from "../lib/format";
 import { formatPhoneDisplay } from "../lib/phone";
-import { STATUS_LABEL, type ApplicationStatus } from "../lib/status";
-
-function statusRank(status: ApplicationStatus) {
-  if (status === "pending") {
-    return 0;
-  }
-  if (status === "approved") {
-    return 1;
-  }
-  if (status === "blocked") {
-    return 2;
-  }
-  return 3;
-}
+import { STATUS_LABEL, statusRank } from "../lib/status";
 
 export function AdminLeasingListPage() {
   const navigate = useNavigate();
@@ -49,6 +36,11 @@ export function AdminLeasingListPage() {
             key: "amount",
             label: "Сумма",
             render: (item) => item.amount || "—",
+          },
+          {
+            key: "manager",
+            label: "Менеджер",
+            render: (item) => item.responsibleManager || "—",
           },
           {
             key: "phone",

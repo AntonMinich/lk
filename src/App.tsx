@@ -21,8 +21,10 @@ export default function App() {
         <Route element={<AdminGate />}>
           <Route path="/admin/partners" element={<AdminPartnerListPage />} />
           <Route path="/admin/partners/:id" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/partners/:id/history" element={<AdminPartnerDetailPage />} />
           <Route path="/admin/leasing" element={<AdminLeasingListPage />} />
           <Route path="/admin/leasing/:id" element={<AdminLeasingDetailPage />} />
+          <Route path="/admin/leasing/:id/history" element={<AdminLeasingDetailPage />} />
         </Route>
         <Route path="/admin/applications" element={<Navigate to="/admin/partners" replace />} />
         <Route path="/partners" element={<Navigate to="/admin/partners" replace />} />

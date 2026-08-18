@@ -1,3 +1,4 @@
+import type { HistoryEvent } from "../../shared/history.ts";
 import type { ApplicationStatus } from "./status";
 
 export type PublicPartner = {
@@ -7,8 +8,10 @@ export type PublicPartner = {
   contactName: string;
   createdAt: string;
   status: ApplicationStatus;
+  responsibleManager: string;
   activatedBy: string;
   activatedAt: string;
+  history: HistoryEvent[];
 };
 
 type ApiError = {
@@ -113,5 +116,12 @@ export function setPartnerStatusRequest(id: string, status: ApplicationStatus) {
   return request<{ partner: PublicPartner }>(`/api/partners/${id}/status`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
+  });
+}
+
+export function setPartnerManagerRequest(id: string, manager: string) {
+  return request<{ partner: PublicPartner }>(`/api/partners/${id}/manager`, {
+    method: "PATCH",
+    body: JSON.stringify({ manager }),
   });
 }

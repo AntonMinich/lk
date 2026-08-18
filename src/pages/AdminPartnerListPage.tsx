@@ -4,21 +4,8 @@ import { AdminApplicationTable } from "../components/AdminApplicationTable";
 import { useAuth } from "../lib/auth";
 import { formatDateTime } from "../lib/format";
 import { formatPhoneDisplay } from "../lib/phone";
-import { STATUS_LABEL, type ApplicationStatus } from "../lib/status";
+import { STATUS_LABEL, statusRank } from "../lib/status";
 import type { PublicPartner } from "../lib/api";
-
-function statusRank(status: ApplicationStatus) {
-  if (status === "pending") {
-    return 0;
-  }
-  if (status === "approved") {
-    return 1;
-  }
-  if (status === "blocked") {
-    return 2;
-  }
-  return 3;
-}
 
 export function AdminPartnerListPage() {
   const { listPartners } = useAuth();
@@ -71,6 +58,11 @@ export function AdminPartnerListPage() {
             key: "phone",
             label: "Телефон",
             render: (item) => formatPhoneDisplay(item.phone),
+          },
+          {
+            key: "manager",
+            label: "Менеджер",
+            render: (item) => item.responsibleManager || "—",
           },
           {
             key: "date",
