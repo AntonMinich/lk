@@ -181,12 +181,12 @@ input {
 }
 
 .auth-card h1 {
-  margin-bottom: 6px;
+  margin-bottom: 16px;
 }
 
 .auth-card__subtitle,
 .cabinet__lead {
-  margin: 0 0 20px;
+  margin: -8px 0 20px;
   color: var(--muted);
   font-size: 14px;
 }
@@ -280,6 +280,90 @@ input {
 
 .stat-card__value.is-danger {
   color: var(--danger);
+}
+
+.filter-bar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.filter-card {
+  --filter: #2563eb;
+  position: relative;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px 14px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--white);
+  box-shadow: var(--shadow);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.filter-card--blue {
+  --filter: #2563eb;
+}
+
+.filter-card--orange {
+  --filter: #ea580c;
+}
+
+.filter-card--teal {
+  --filter: #0d9488;
+}
+
+.filter-card--green {
+  --filter: #16a34a;
+}
+
+.filter-card--red {
+  --filter: #dc2626;
+}
+
+.filter-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 12px 12px 0 0;
+  background: var(--filter);
+  opacity: 0;
+}
+
+.filter-card.is-active::before {
+  opacity: 1;
+}
+
+.filter-card.is-active,
+.filter-card:hover {
+  border-color: var(--filter);
+}
+
+.filter-card:focus-visible {
+  outline: 2px solid var(--filter);
+  outline-offset: 2px;
+}
+
+.filter-card__label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.filter-card__value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .panel {
@@ -871,6 +955,8 @@ input {
 
 .admin-header {
   grid-area: header;
+  position: relative;
+  z-index: 40;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -961,7 +1047,7 @@ input {
   border-radius: 12px;
   box-shadow: 0 16px 40px rgb(15 23 42 / 12%);
   padding: 4px 0 8px;
-  z-index: 40;
+  z-index: 50;
 }
 
 .notice-bell__head {
@@ -1112,7 +1198,7 @@ input {
   border: 1px solid var(--line);
   border-radius: 12px;
   box-shadow: 0 16px 40px rgb(15 23 42 / 12%);
-  z-index: 40;
+  z-index: 50;
 }
 
 .user-menu__item {
@@ -1141,6 +1227,8 @@ input {
 
 .admin-content {
   grid-area: content;
+  position: relative;
+  z-index: 0;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -1335,6 +1423,7 @@ input {
 .history-table thead th {
   position: sticky;
   top: 0;
+  z-index: 1;
   background: #f8fafc;
   color: var(--muted);
   font-size: 12px;
@@ -1414,7 +1503,8 @@ input {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .stat-grid {
+  .stat-grid,
+  .filter-bar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1536,16 +1626,21 @@ input {
 }
 
 .status-pill--pending {
-  background: #fffbeb;
-  color: #b45309;
+  background: #fff7ed;
+  color: #c2410c;
 }
 
 .status-pill--accepted {
-  background: #f0f9ff;
-  color: #0369a1;
+  background: #f0fdfa;
+  color: #0f766e;
 }
 
 .status-pill--approved {
+  background: #ecfdf5;
+  color: #15803d;
+}
+
+.status-pill--active {
   background: #ecfdf5;
   color: #047857;
 }

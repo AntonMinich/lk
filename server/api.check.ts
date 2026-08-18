@@ -220,6 +220,17 @@ try {
   });
   assert.equal(login.status, 200);
   assert.equal(login.data.partner?.phone, "+375447574025");
+  assert.equal(login.data.partner?.status, "active");
+
+  const listedActive = await api("/api/partners", {
+    headers: { Cookie: adminLogin.cookies },
+  });
+  const afterLogin = listedActive.data.partners?.find((item) => item.phone === "+375447574025");
+  assert.equal(afterLogin?.status, "active");
+  assert.equal(
+    afterLogin?.history?.some((item) => /активировал личный кабинет/i.test(String(item.text))),
+    true,
+  );
 
   const me = await api("/api/me", {
     headers: { Cookie: login.cookies },

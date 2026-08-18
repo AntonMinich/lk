@@ -50,7 +50,7 @@ const SEED: LeasingApplication[] = [
     amount: "95 000 BYN",
     termMonths: "24",
     createdAt: "2026-08-15T14:05:00.000Z",
-    status: "pending",
+    status: "accepted",
     responsibleManager: "",
     activatedBy: "",
     activatedAt: "",

@@ -1,25 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminApplicationTable } from "../components/AdminApplicationTable";
-import { StatusFilterBar } from "../components/StatusFilterBar";
 import { PageHeader } from "../components/ui/PageHeader";
 import { useAuth } from "../lib/auth";
 import { formatDateTime } from "../lib/format";
 import { formatPhoneDisplay } from "../lib/phone";
-import {
-  isRegistrationQueue,
-  matchesApplicationFilter,
-  STATUS_LABEL,
-  statusRank,
-  type ApplicationFilterKey,
-} from "../lib/status";
+import { isDirectoryPartner, STATUS_LABEL, statusRank } from "../lib/status";
 import type { PublicPartner } from "../lib/api";
 
-export function AdminPartnerListPage() {
+export function AdminPartnerDirectoryPage() {
   const { listPartners } = useAuth();
   const navigate = useNavigate();
   const [partners, setPartners] = useState<PublicPartner[]>([]);
-  const [filter, setFilter] = useState<ApplicationFilterKey>("all");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -29,14 +21,12 @@ export function AdminPartnerListPage() {
         if (cancelled) {
           return;
         }
-        items.sort(
-          (a, b) => statusRank(a.status) - statusRank(b.status) || b.createdAt.localeCompare(a.createdAt),
-        );
+        items.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
         setPartners(items);
       })
       .catch((item: unknown) => {
         if (!cancelled) {
-          setError(item instanceof Error ? item.message : "Не удалось загрузить заявки");
+          setError(item instanceof Error ? item.message : "Не удалось загрузить партнёров");
         }
       });
     return () => {
@@ -44,29 +34,32 @@ export function AdminPartnerListPage() {
     };
   }, [listPartners]);
 
-  const queue = useMemo(() => partners.filter((item) => isRegistrationQueue(item.status)), [partners]);
   const rows = useMemo(
-    () => queue.filter((item) => matchesApplicationFilter(item.status, filter)),
-    [filter, queue],
+    () =>
+      partners
+        .filter((item) => isDirectoryPartner(item.status))
+        .sort((a, b) => statusRank(a.status) - statusRank(b.status) || a.companyName.localeCompare(b.companyName)),
+    [partners],
   );
 
   return (
     <section className="admin-page">
-      <PageHeader
-        title="Заявки на регистрацию партнера"
-        subtitle="Новые заявки появляются здесь сразу после отправки формы"
-      />
-      <StatusFilterBar items={queue} value={filter} onChange={setFilter} />
+      <PageHeader title="Партнеры" subtitle={`${rows.length} активных партнёров`} />
       {error ? <p className="field__error">{error}</p> : null}
       <AdminApplicationTable
         rows={rows}
-        empty={queue.length === 0 ? "Пока нет заявок на регистрацию." : "Нет заявок в этом отборе."}
-        onRowClick={(item) => navigate(`/admin/partners/${item.id}`)}
+        empty="Пока нет активных партнёров. Они появляются здесь после входа в кабинет."
+        onRowClick={(item) => navigate(`/admin/directory/${item.id}`)}
         columns={[
           {
             key: "company",
             label: "Организация",
             render: (item) => item.companyName || "—",
+          },
+          {
+            key: "unp",
+            label: "УНП",
+            render: (item) => item.unp || "—",
           },
           {
             key: "contact",
@@ -85,7 +78,7 @@ export function AdminPartnerListPage() {
           },
           {
             key: "date",
-            label: "Дата",
+            label: "Дата заявки",
             render: (item) => formatDateTime(item.createdAt),
           },
           {

@@ -169,9 +169,26 @@ export function loginLocalPartner(
   if (blocked) {
     return { ok: false, message: blocked };
   }
-  const partner = toPublic(found);
+  const partner = toPublic(activateCabinetIfApproved(found));
   writeLocalSession(partner);
   return { ok: true, partner };
+}
+
+function activateCabinetIfApproved(partner: StoredPartner): StoredPartner {
+  if (normalizeStatus(partner.status) !== "approved") {
+    return partner;
+  }
+  const next: StoredPartner = {
+    ...partner,
+    ...applyStatusChange(workflowOf(partner), "active", "Партнёр"),
+  };
+  const partners = readAll();
+  const index = partners.findIndex((item) => item.id === partner.id);
+  if (index >= 0) {
+    partners[index] = next;
+    writeAll(partners);
+  }
+  return next;
 }
 
 export function setLocalPartnerStatus(
@@ -248,10 +265,14 @@ export function readLocalSession(): PublicPartner | null {
       return null;
     }
     const parsed = JSON.parse(raw) as PublicPartner;
-    const partner = toPublic({ ...parsed, password: "" });
+    const stored = readAll().find((item) => item.id === parsed.id);
+    const partner = toPublic(stored ? activateCabinetIfApproved(stored) : { ...parsed, password: "" });
     if (loginBlockedMessage(partner.status)) {
       storageRemove(SESSION_KEY);
       return null;
+    }
+    if (stored && partner.status === "active" && parsed.status !== "active") {
+      writeLocalSession(partner);
     }
     return partner;
   } catch {
