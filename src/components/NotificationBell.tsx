@@ -19,7 +19,7 @@ export function NotificationBell({ audience, partnerId, allHref }: NotificationB
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const preview = items.slice(0, 6);
+  const preview = items.filter((item) => !item.read).slice(0, 6);
 
   useEffect(() => {
     function handlePointer(event: MouseEvent) {
@@ -73,7 +73,7 @@ export function NotificationBell({ audience, partnerId, allHref }: NotificationB
             ) : null}
           </div>
           {preview.length === 0 ? (
-            <p className="notice-bell__empty">Пока нет уведомлений</p>
+            <p className="notice-bell__empty">{items.length ? "Нет новых уведомлений" : "Пока нет уведомлений"}</p>
           ) : (
             preview.map((item) => (
               <button

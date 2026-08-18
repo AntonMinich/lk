@@ -5,6 +5,7 @@ import { formatDateTime } from "../lib/format";
 import {
   markNotificationRead,
   markNotificationsRead,
+  type AppNotification,
   type NotificationAudience,
 } from "../lib/notifications";
 import { useNotifications } from "../lib/use-notifications";
@@ -29,12 +30,19 @@ type NotificationsPageProps = {
 export function NotificationsPage({ audience, partnerId }: NotificationsPageProps) {
   const { items, unread } = useNotifications({ audience, partnerId });
   const navigate = useNavigate();
+  const fresh = items.filter((item) => !item.read);
+  const seen = items.filter((item) => item.read);
+
+  function openItem(item: AppNotification) {
+    markNotificationRead(item.id);
+    navigate(item.href);
+  }
 
   return (
     <section className="admin-page">
       <PageHeader
         title="Уведомления"
-        subtitle={unread > 0 ? `${unread} непрочитанных` : "Все уведомления прочитаны"}
+        subtitle={unread > 0 ? `${unread} непросмотренных` : "Все уведомления просмотрены"}
         actions={
           unread > 0 ? (
             <button type="button" className="ghost-btn" onClick={() => markNotificationsRead({ audience, partnerId })}>
@@ -45,6 +53,44 @@ export function NotificationsPage({ audience, partnerId }: NotificationsPageProp
       />
       {items.length === 0 ? (
         <p className="admin-empty">Пока нет уведомлений.</p>
+      ) : (
+        <div className="notice-page__groups">
+          <NotificationGroup
+            title="Непросмотренные"
+            empty="Нет непросмотренных уведомлений."
+            items={fresh}
+            onOpen={openItem}
+          />
+          <NotificationGroup
+            title="Прочитанные"
+            empty="Нет прочитанных уведомлений."
+            items={seen}
+            onOpen={openItem}
+          />
+        </div>
+      )}
+    </section>
+  );
+}
+
+function NotificationGroup({
+  title,
+  empty,
+  items,
+  onOpen,
+}: {
+  title: string;
+  empty: string;
+  items: AppNotification[];
+  onOpen: (item: AppNotification) => void;
+}) {
+  return (
+    <section className="notice-group">
+      <h2>
+        {title} <span>{items.length}</span>
+      </h2>
+      {items.length === 0 ? (
+        <p className="admin-empty">{empty}</p>
       ) : (
         <div className="history-table-wrap">
           <table className="history-table">
@@ -61,15 +107,11 @@ export function NotificationsPage({ audience, partnerId }: NotificationsPageProp
                   key={item.id}
                   className={item.read ? "admin-table__row--click" : "admin-table__row--click is-unread"}
                   tabIndex={0}
-                  onClick={() => {
-                    markNotificationRead(item.id);
-                    navigate(item.href);
-                  }}
+                  onClick={() => onOpen(item)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      markNotificationRead(item.id);
-                      navigate(item.href);
+                      onOpen(item);
                     }
                   }}
                 >
@@ -80,7 +122,7 @@ export function NotificationsPage({ audience, partnerId }: NotificationsPageProp
                     <strong>{item.title}</strong>
                     <span className="notice-page__text">{item.text}</span>
                   </td>
-                  <td data-label="Статус">{item.read ? "Прочитано" : "Новое"}</td>
+                  <td data-label="Статус">{item.read ? "Прочитано" : "Непросмотренное"}</td>
                 </tr>
               ))}
             </tbody>

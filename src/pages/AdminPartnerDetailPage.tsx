@@ -118,6 +118,8 @@ export function AdminPartnerDetailPage() {
         label: partnerDocumentLabel(item.key),
         fileName: item.fileName,
         size: item.size,
+        key: item.key,
+        phone: current.phone,
       }))}
     />
   );

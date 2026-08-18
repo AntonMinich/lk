@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { DocumentDownloadButton } from "./DocumentDownloadButton";
 import { adminLogins } from "../lib/local-partners";
 import { formatDateTime, formatFileSize } from "../lib/format";
 import type { HistoryEvent } from "../lib/history";
@@ -14,6 +15,8 @@ export type AdminDocumentItem = {
   label: string;
   fileName: string;
   size?: number;
+  key?: string;
+  phone?: string;
 };
 
 type AdminApplicationDetailProps = {
@@ -36,11 +39,11 @@ type AdminApplicationDetailProps = {
   onChangeManager: (name: string) => void;
 };
 
-function Field({ label, value }: AdminFormField) {
+function Fact({ label, value }: AdminFormField) {
   return (
-    <div className="field">
-      <label>{label}</label>
-      <input type="text" readOnly value={value || "—"} />
+    <div className="admin-fact">
+      <span className="admin-fact__label">{label}</span>
+      <span className="admin-fact__value">{value || "—"}</span>
     </div>
   );
 }
@@ -163,11 +166,10 @@ export function AdminApplicationDetail({
           </div>
         ) : (
           <>
-            <div className="admin-form-grid">
+            <div className="admin-facts">
               {fields.map((field) => (
-                <Field key={field.label} {...field} />
+                <Fact key={field.label} {...field} />
               ))}
-              <Field label="Статус" value={STATUS_LABEL[status]} />
             </div>
             {documents ? (
               <div className="admin-docs">
@@ -193,6 +195,9 @@ export function AdminApplicationDetail({
                             {item.size ? ` · ${formatFileSize(item.size)}` : ""}
                           </span>
                         </span>
+                        {item.phone && item.key ? (
+                          <DocumentDownloadButton phone={item.phone} docKey={item.key} fileName={item.fileName} />
+                        ) : null}
                       </li>
                     ))}
                   </ul>
@@ -203,6 +208,10 @@ export function AdminApplicationDetail({
         )}
       </section>
       <aside className="admin-actions">
+        <div className={`admin-status admin-status--${status}`}>
+          <p className="admin-actions__title">Статус</p>
+          <span className={`status-pill status-pill--${status}`}>{STATUS_LABEL[status]}</span>
+        </div>
         <p className="admin-actions__title">Ответственный менеджер</p>
         <p className="admin-actions__manager">{manager || "Не назначен"}</p>
         {canChangeManager ? (
@@ -258,7 +267,7 @@ export function AdminApplicationDetail({
           </Link>
         ) : (
           <Link to={historyHref} className="admin-actions__link">
-            История
+            История ({history.length})
           </Link>
         )}
       </aside>
