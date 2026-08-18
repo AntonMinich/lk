@@ -28,7 +28,12 @@ const baseUrl = `http://127.0.0.1:${address.port}`;
 
 type ApiResponse = {
   status: number;
-  data: { message?: string; ok?: boolean; partner?: { phone?: string } };
+  data: {
+    message?: string;
+    ok?: boolean;
+    partner?: { phone?: string };
+    partners?: { phone?: string }[];
+  };
   cookies: string;
 };
 
@@ -105,6 +110,10 @@ try {
   });
   assert.equal(me.status, 200);
   assert.equal(me.data.partner?.phone, "+375447574025");
+
+  const listed = await api("/api/partners");
+  assert.equal(listed.status, 200);
+  assert.equal(listed.data.partners?.some((item) => item.phone === "+375447574025"), true);
 
   console.log("api checks passed");
 } finally {

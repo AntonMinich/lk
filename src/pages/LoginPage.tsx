@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../components/AuthLayout";
 import { PhoneField } from "../components/PhoneField";
+import { ServerStatusBanner } from "../components/ServerStatusBanner";
 import { useAuth } from "../lib/auth";
 import { validatePartnerPhone } from "../lib/phone";
 
@@ -74,6 +75,7 @@ export function LoginPage() {
           Партнёр зарегистрирован. Войдите по номеру телефона и паролю.
         </p>
       )}
+      <ServerStatusBanner />
 
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <PhoneField
@@ -129,6 +131,9 @@ export function LoginPage() {
 
         <Link to="/register" className="secondary-btn">
           Регистрация партнёра
+        </Link>
+        <Link to="/partners" className="text-link">
+          Зарегистрированные партнёры
         </Link>
       </form>
     </AuthLayout>

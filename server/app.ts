@@ -145,6 +145,11 @@ export function createApp(options: CreateAppOptions) {
     res.json({ ok: true });
   });
 
+  app.get("/api/partners", async (_req, res) => {
+    const partners = await store.list();
+    res.json({ partners: partners.map(toPublicPartner) });
+  });
+
   app.get("/api/me", async (req, res) => {
     const session = readSession(req);
     if (!session) {

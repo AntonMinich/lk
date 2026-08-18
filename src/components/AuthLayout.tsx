@@ -17,7 +17,7 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
         <div className="auth-brand__glow" />
         <div className="auth-brand__top">
           <Link to="/" className="logo logo--wordmark">
-            <BrandMark />
+            <BrandMark plate />
           </Link>
         </div>
         <div className="auth-brand__copy">
