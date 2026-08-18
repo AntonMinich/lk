@@ -1,4 +1,5 @@
 import { useCallback, useState, type ChangeEvent, type DragEvent } from "react";
+import { formatFileSize } from "../lib/format";
 
 type FileDropProps = {
   label: string;
@@ -6,16 +7,6 @@ type FileDropProps = {
   onChange: (file: File | null) => void;
   accept?: string;
 };
-
-function formatSize(size: number) {
-  if (size < 1024) {
-    return `${size} Б`;
-  }
-  if (size < 1024 * 1024) {
-    return `${Math.round(size / 1024)} КБ`;
-  }
-  return `${(size / (1024 * 1024)).toFixed(1)} МБ`;
-}
 
 export function FileDrop({ label, file, onChange, accept = ".pdf,.jpg,.jpeg,.png,.webp" }: FileDropProps) {
   const [over, setOver] = useState(false);
@@ -43,11 +34,13 @@ export function FileDrop({ label, file, onChange, accept = ".pdf,.jpg,.jpeg,.png
     event.target.value = "";
   }
 
+  const stateClass = over ? " is-over" : file ? " is-done" : "";
+
   return (
     <div className="file-drop-field">
       <p className="file-drop__label">{label}</p>
       <label
-        className={over ? "file-drop is-over" : "file-drop"}
+        className={`file-drop${stateClass}`}
         onDragEnter={(event) => {
           event.preventDefault();
           setOver(true);
@@ -66,7 +59,7 @@ export function FileDrop({ label, file, onChange, accept = ".pdf,.jpg,.jpeg,.png
         {file ? (
           <span className="file-drop__picked">
             <strong>{file.name}</strong>
-            <span>{formatSize(file.size)}</span>
+            <span>{formatFileSize(file.size)}</span>
           </span>
         ) : (
           <span className="file-drop__placeholder">

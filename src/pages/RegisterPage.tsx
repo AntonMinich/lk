@@ -143,112 +143,134 @@ export function RegisterPage() {
           <h1>Регистрация партнера</h1>
           <p className="register-lead">Заполните информацию и приложите обязательные документы.</p>
           <form className="register-form" onSubmit={handleSubmit} noValidate>
-            <section className="register-section">
+            <section className="register-section register-section--docs">
               <h2>1. Скачайте, ознакомьтесь и подпишите документы:</h2>
-              <a className="register-doc-link" href={AGREEMENT_HREF} download="dogovor-o-sotrudnichestve.html">
-                Договор о сотрудничестве
+              <a
+                className="register-download"
+                href={AGREEMENT_HREF}
+                download="dogovor-o-sotrudnichestve.html"
+              >
+                <span className="register-download__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="22" height="22">
+                    <path
+                      fill="currentColor"
+                      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm4 18H6V4h7v5h5v11Z"
+                    />
+                    <path fill="currentColor" d="M11 11h2v4h2l-3 3-3-3h2v-4Z" />
+                  </svg>
+                </span>
+                <span className="register-download__text">
+                  <strong>Договор о сотрудничестве</strong>
+                  <span>Документ для скачивания</span>
+                </span>
+                <span className="register-download__action">Скачать</span>
               </a>
             </section>
 
             <section className="register-section">
               <h2>2. Заполните информацию</h2>
-              <div className="field">
-                <label htmlFor="company">Наименование юридического лица</label>
-                <input
-                  id="company"
-                  type="text"
-                  autoComplete="organization"
-                  value={companyName}
-                  onChange={(event) => setCompanyName(event.target.value)}
-                  placeholder="ООО «Партнёр»"
-                />
-              </div>
-              <div className={`field ${unpError ? "field--invalid" : ""}`}>
-                <label htmlFor="unp">УНП</label>
-                <input
-                  id="unp"
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={9}
-                  value={unp}
-                  onChange={(event) => {
-                    setUnp(event.target.value.replace(/\D/g, "").slice(0, 9));
-                    setUnpError("");
+              <div className="register-fields">
+                <div className="field">
+                  <label htmlFor="company">Наименование юридического лица</label>
+                  <input
+                    id="company"
+                    type="text"
+                    autoComplete="organization"
+                    value={companyName}
+                    onChange={(event) => setCompanyName(event.target.value)}
+                    placeholder="ООО «Партнёр»"
+                  />
+                </div>
+                <div className={`field ${unpError ? "field--invalid" : ""}`}>
+                  <label htmlFor="unp">УНП</label>
+                  <input
+                    id="unp"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={9}
+                    value={unp}
+                    onChange={(event) => {
+                      setUnp(event.target.value.replace(/\D/g, "").slice(0, 9));
+                      setUnpError("");
+                    }}
+                    placeholder="123456789"
+                  />
+                  {unpError ? (
+                    <p className="field__error" role="alert">
+                      {unpError}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="field field--tip">
+                  <label htmlFor="contact">ФИО контактного лица</label>
+                  <div className="field-tip-wrap">
+                    <input
+                      id="contact"
+                      type="text"
+                      autoComplete="name"
+                      value={contactName}
+                      onChange={(event) => setContactName(event.target.value)}
+                      placeholder="Иванов Иван Иванович"
+                      aria-describedby="contact-tip"
+                    />
+                    <span className="field-tip-mark" tabIndex={0} aria-describedby="contact-tip">
+                      ?
+                    </span>
+                    <span className="field-tip-bubble" id="contact-tip" role="tooltip">
+                      Данному пользователю будут назначены права администратора
+                    </span>
+                  </div>
+                </div>
+                <PhoneField
+                  label="Контактный номер"
+                  value={phone}
+                  onChange={(value) => {
+                    setPhone(value);
+                    if (phoneError) {
+                      validatePhoneField(value);
+                    }
                   }}
-                  placeholder="123456789"
-                />
-                {unpError ? (
-                  <p className="field__error" role="alert">
-                    {unpError}
-                  </p>
-                ) : null}
-              </div>
-              <div className="field">
-                <label htmlFor="contact">
-                  ФИО контактного лица
-                  <span
-                    className="field-tip"
-                    title="Укажите фамилию, имя и отчество человека, с которым можно связаться по заявке."
-                  >
-                    ⓘ
-                  </span>
-                </label>
-                <input
-                  id="contact"
-                  type="text"
-                  autoComplete="name"
-                  value={contactName}
-                  onChange={(event) => setContactName(event.target.value)}
-                  placeholder="Иванов Иван Иванович"
-                />
-              </div>
-              <PhoneField
-                label="Контактный номер"
-                value={phone}
-                onChange={(value) => {
-                  setPhone(value);
-                  if (phoneError) {
-                    validatePhoneField(value);
-                  }
-                }}
-                onBlur={() => {
-                  if (phone) {
-                    validatePhoneField();
-                  }
-                }}
-                error={phoneError}
-              />
-              <div className={`field ${emailError ? "field--invalid" : ""}`}>
-                <label htmlFor="email">Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(event) => {
-                    setEmail(event.target.value);
-                    setEmailError("");
+                  onBlur={() => {
+                    if (phone) {
+                      validatePhoneField();
+                    }
                   }}
-                  placeholder="partner@example.by"
+                  error={phoneError}
                 />
-                {emailError ? (
-                  <p className="field__error" role="alert">
-                    {emailError}
-                  </p>
-                ) : null}
+                <div className={`field ${emailError ? "field--invalid" : ""}`}>
+                  <label htmlFor="email">Email</label>
+                  <input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+                      setEmailError("");
+                    }}
+                    placeholder="partner@example.by"
+                  />
+                  {emailError ? (
+                    <p className="field__error" role="alert">
+                      {emailError}
+                    </p>
+                  ) : null}
+                </div>
               </div>
             </section>
 
             <section className="register-section">
               <h2>3. Загрузите сканы указанных документов:</h2>
-              {REQUIRED_DOCUMENT_KEYS.map((key) => (
-                <FileDrop
-                  key={key}
-                  label={PARTNER_DOCUMENT_LABEL[key]}
-                  file={files[key] ?? null}
-                  onChange={(file) => setFiles((current) => ({ ...current, [key]: file }))}
-                />
-              ))}
+              <div className="register-files">
+                {REQUIRED_DOCUMENT_KEYS.map((key) => (
+                  <FileDrop
+                    key={key}
+                    label={PARTNER_DOCUMENT_LABEL[key]}
+                    file={files[key] ?? null}
+                    onChange={(file) => setFiles((current) => ({ ...current, [key]: file }))}
+                  />
+                ))}
+              </div>
             </section>
 
             {formError ? (
