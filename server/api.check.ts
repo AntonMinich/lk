@@ -151,13 +151,33 @@ try {
     true,
   );
 
-  const managerChanged = await api(`/api/partners/${application.id}/manager`, {
+  const admin2Denied = await api("/api/admin/login", {
+    method: "POST",
+    body: JSON.stringify({ login: "admin2", password: "fincode" }),
+  });
+  assert.equal(admin2Denied.status, 401);
+
+  const admin2Login = await api("/api/admin/login", {
+    method: "POST",
+    body: JSON.stringify({ login: "admin2", password: "fincode2" }),
+  });
+  assert.equal(admin2Login.status, 200);
+  assert.equal(admin2Login.data.ok, true);
+
+  const managerUnknown = await api(`/api/partners/${application.id}/manager`, {
     method: "PATCH",
     headers: { Cookie: adminLogin.cookies },
     body: JSON.stringify({ manager: "Ирина" }),
   });
+  assert.equal(managerUnknown.status, 400);
+
+  const managerChanged = await api(`/api/partners/${application.id}/manager`, {
+    method: "PATCH",
+    headers: { Cookie: adminLogin.cookies },
+    body: JSON.stringify({ manager: "admin2" }),
+  });
   assert.equal(managerChanged.status, 200);
-  assert.equal(managerChanged.data.partner?.responsibleManager, "Ирина");
+  assert.equal(managerChanged.data.partner?.responsibleManager, "admin2");
 
   const approved = await api(`/api/partners/${application.id}/status`, {
     method: "PATCH",
@@ -167,7 +187,7 @@ try {
   assert.equal(approved.status, 200);
   assert.equal(approved.data.partner?.status, "approved");
   assert.equal(approved.data.partner?.activatedBy, "admin");
-  assert.equal(approved.data.partner?.responsibleManager, "Ирина");
+  assert.equal(approved.data.partner?.responsibleManager, "admin2");
 
   const login = await api("/api/login", {
     method: "POST",

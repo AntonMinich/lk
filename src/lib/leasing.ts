@@ -1,3 +1,4 @@
+import { isAdminLogin } from "../../shared/admin.ts";
 import { createdHistoryEvent, ensureHistory, type HistoryEvent } from "../../shared/history.ts";
 import { normalizeStatus, type ApplicationStatus } from "../../shared/status.ts";
 import { applyManagerChange, applyStatusChange } from "../../shared/workflow.ts";
@@ -129,6 +130,9 @@ export function setLocalLeasingManager(
   manager: string,
   actor = "",
 ): { ok: true; application: LeasingApplication } | { ok: false; message: string } {
+  if (!isAdminLogin(manager)) {
+    return { ok: false, message: "Выберите менеджера из списка" };
+  }
   const items = readAll();
   const index = items.findIndex((item) => item.id === id);
   if (index < 0) {

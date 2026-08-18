@@ -1,4 +1,4 @@
-import { ADMIN_DEMO } from "../../shared/admin.ts";
+import { findAdmin, isAdminLogin } from "../../shared/admin.ts";
 import { createdHistoryEvent, ensureHistory, type HistoryEvent } from "../../shared/history.ts";
 import { loginBlockedMessage, normalizeStatus, type ApplicationStatus } from "./status";
 import { applyManagerChange, applyStatusChange } from "../../shared/workflow.ts";
@@ -22,7 +22,7 @@ const PARTNERS_KEY = "lk-local-partners";
 const SESSION_KEY = "lk-local-session";
 const ADMIN_KEY = "lk-admin-session";
 
-export { ADMIN_DEMO };
+export { ADMIN_ACCOUNTS, adminLogins, ADMIN_DEMO } from "../../shared/admin.ts";
 
 function workflowOf(partner: StoredPartner) {
   return {
@@ -155,6 +155,9 @@ export function setLocalPartnerManager(
   manager: string,
   actor = "",
 ): { ok: true; partner: PublicPartner } | { ok: false; message: string } {
+  if (!isAdminLogin(manager)) {
+    return { ok: false, message: "Выберите менеджера из списка" };
+  }
   const partners = readAll();
   const index = partners.findIndex((item) => item.id === id);
   if (index < 0) {
@@ -200,12 +203,12 @@ export function loginLocalAdmin(
   login: string,
   password: string,
 ): { ok: true; login: string } | { ok: false; message: string } {
-  const name = login.trim();
-  if (name !== ADMIN_DEMO.login || password !== ADMIN_DEMO.password) {
+  const found = findAdmin(login, password);
+  if (!found) {
     return { ok: false, message: "Неверный логин или пароль администратора" };
   }
-  sessionStorage.setItem(ADMIN_KEY, name);
-  return { ok: true, login: name };
+  sessionStorage.setItem(ADMIN_KEY, found.login);
+  return { ok: true, login: found.login };
 }
 
 export function localAdminName(): string | null {

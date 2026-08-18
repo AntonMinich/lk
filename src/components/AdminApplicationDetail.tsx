@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { adminLogins } from "../lib/local-partners";
 import { formatDateTime } from "../lib/format";
 import type { HistoryEvent } from "../lib/history";
 import { STATUS_LABEL, type ApplicationStatus } from "../lib/status";
@@ -36,6 +37,8 @@ function Field({ label, value }: AdminFormField) {
   );
 }
 
+const MANAGERS = adminLogins();
+
 export function AdminApplicationDetail({
   title,
   fields,
@@ -53,8 +56,9 @@ export function AdminApplicationDetail({
   onBlock,
   onChangeManager,
 }: AdminApplicationDetailProps) {
+  const defaultManager = MANAGERS.find((item) => item !== manager) ?? MANAGERS[0] ?? "";
   const [editingManager, setEditingManager] = useState(false);
-  const [managerDraft, setManagerDraft] = useState(manager);
+  const [managerDraft, setManagerDraft] = useState(defaultManager);
 
   const canAccept = status === "pending" || status === "rejected";
   const canApprove = status === "accepted";
@@ -97,6 +101,8 @@ export function AdminApplicationDetail({
     </>
   );
 
+  const historyRows = [...history].sort((a, b) => a.at.localeCompare(b.at));
+
   return (
     <div className="admin-detail">
       <section className="admin-detail__form">
@@ -107,16 +113,28 @@ export function AdminApplicationDetail({
           </p>
         ) : null}
         {showHistory ? (
-          <ol className="history-list">
-            {[...history]
-              .sort((a, b) => a.at.localeCompare(b.at))
-              .map((item) => (
-                <li key={item.id} className="history-list__item">
-                  <time dateTime={item.at}>{formatDateTime(item.at)}</time>
-                  <p>{item.text}</p>
-                </li>
-              ))}
-          </ol>
+          <div className="history-table-wrap">
+            <table className="history-table">
+              <thead>
+                <tr>
+                  <th>Дата и время</th>
+                  <th>Сотрудник</th>
+                  <th>Событие</th>
+                </tr>
+              </thead>
+              <tbody>
+                {historyRows.map((item) => (
+                  <tr key={item.id}>
+                    <td data-label="Дата и время">
+                      <time dateTime={item.at}>{formatDateTime(item.at)}</time>
+                    </td>
+                    <td data-label="Сотрудник">{item.actor || "—"}</td>
+                    <td data-label="Событие">{item.text}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <div className="admin-form-grid">
             {fields.map((field) => (
@@ -132,12 +150,20 @@ export function AdminApplicationDetail({
         {canChangeManager ? (
           editingManager ? (
             <form className="admin-actions__form" onSubmit={handleManagerSubmit}>
-              <input
+              <label className="admin-actions__select-label" htmlFor="manager-select">
+                Менеджер
+              </label>
+              <select
+                id="manager-select"
                 value={managerDraft}
                 onChange={(event) => setManagerDraft(event.target.value)}
-                placeholder="Имя менеджера"
-                autoComplete="off"
-              />
+              >
+                {MANAGERS.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
               <button type="submit" className="action-btn action-btn--approve" disabled={busy}>
                 Сохранить
               </button>
@@ -146,7 +172,7 @@ export function AdminApplicationDetail({
                 className="action-btn action-btn--ghost"
                 onClick={() => {
                   setEditingManager(false);
-                  setManagerDraft(manager);
+                  setManagerDraft(defaultManager);
                 }}
               >
                 Отмена
@@ -158,7 +184,7 @@ export function AdminApplicationDetail({
               className="action-btn action-btn--ghost"
               disabled={busy}
               onClick={() => {
-                setManagerDraft(manager);
+                setManagerDraft(defaultManager);
                 setEditingManager(true);
               }}
             >
