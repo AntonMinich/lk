@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminApplicationTable } from "../components/AdminApplicationTable";
+import { DateTimeCell } from "../components/DateTimeCell";
 import { StatusFilterBar } from "../components/StatusFilterBar";
 import { PageHeader } from "../components/ui/PageHeader";
 import { useAuth } from "../lib/auth";
-import { formatDateTime } from "../lib/format";
+import { formatPartnerApplicationNo } from "../lib/application-no";
 import { formatPhoneDisplay } from "../lib/phone";
 import {
   isRegistrationQueue,
@@ -64,9 +65,19 @@ export function AdminPartnerListPage() {
         onRowClick={(item) => navigate(`/admin/partners/${item.id}`)}
         columns={[
           {
+            key: "id",
+            label: "ID",
+            render: (item) => formatPartnerApplicationNo(item.seq),
+          },
+          {
             key: "company",
             label: "Организация",
             render: (item) => item.companyName || "—",
+          },
+          {
+            key: "unp",
+            label: "УНП",
+            render: (item) => item.unp || "—",
           },
           {
             key: "contact",
@@ -86,7 +97,7 @@ export function AdminPartnerListPage() {
           {
             key: "date",
             label: "Дата",
-            render: (item) => formatDateTime(item.createdAt),
+            render: (item) => <DateTimeCell value={item.createdAt} />,
           },
           {
             key: "status",

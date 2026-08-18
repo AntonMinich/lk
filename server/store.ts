@@ -1,6 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { applicationSeqChanged, fillApplicationSeq, nextApplicationSeq } from "../shared/application-no.ts";
 import { sanitizePartnerDocuments } from "../shared/partner-docs.ts";
 import { createdHistoryEvent, ensureHistory, type HistoryEvent } from "../shared/history.ts";
 import { normalizeStatus, type ApplicationStatus } from "../shared/status.ts";
@@ -25,6 +26,7 @@ export type PartnerRecord = {
   email: string;
   documents: PartnerDocument[];
   createdAt: string;
+  seq: number;
   status: ApplicationStatus;
   responsibleManager: string;
   activatedBy: string;
@@ -41,6 +43,7 @@ export type PublicPartner = {
   email: string;
   documents: PartnerDocument[];
   createdAt: string;
+  seq: number;
   status: ApplicationStatus;
   responsibleManager: string;
   activatedBy: string;
@@ -56,6 +59,7 @@ function withDefaults(record: PartnerRecord): PartnerRecord {
     email: record.email ?? "",
     documents: Array.isArray(record.documents) ? record.documents : [],
     status: normalizeStatus(record.status),
+    seq: Number(record.seq) > 0 ? Number(record.seq) : 0,
     responsibleManager: record.responsibleManager || record.activatedBy || "",
     activatedBy: record.activatedBy ?? "",
     activatedAt: record.activatedAt ?? "",
@@ -84,6 +88,7 @@ export function toPublicPartner(record: PartnerRecord): PublicPartner {
     email: normalized.email,
     documents: normalized.documents,
     createdAt: normalized.createdAt,
+    seq: normalized.seq,
     status: normalized.status,
     responsibleManager: normalized.responsibleManager,
     activatedBy: normalized.activatedBy,
@@ -100,7 +105,12 @@ export class PartnerStore {
     try {
       const raw = await readFile(this.filePath, "utf8");
       const parsed = JSON.parse(raw) as PartnerRecord[];
-      return Array.isArray(parsed) ? parsed.map(withDefaults) : [];
+      const mapped = Array.isArray(parsed) ? parsed.map(withDefaults) : [];
+      const numbered = fillApplicationSeq(mapped);
+      if (applicationSeqChanged(mapped, numbered)) {
+        await this.write(numbered);
+      }
+      return numbered;
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code;
       if (code === "ENOENT") {
@@ -149,6 +159,7 @@ export class PartnerStore {
       email: input.email ?? "",
       documents: sanitizePartnerDocuments(input.documents),
       createdAt,
+      seq: nextApplicationSeq(partners),
       status: "pending",
       responsibleManager: "",
       activatedBy: "",

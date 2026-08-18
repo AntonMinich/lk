@@ -11,6 +11,7 @@ export type PublicPartner = {
   email: string;
   documents: PartnerDocument[];
   createdAt: string;
+  seq: number;
   status: ApplicationStatus;
   responsibleManager: string;
   activatedBy: string;

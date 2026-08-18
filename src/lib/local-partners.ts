@@ -1,4 +1,5 @@
 import { findAdmin, isAdminLogin } from "../../shared/admin.ts";
+import { fillApplicationSeq, applicationSeqChanged, nextApplicationSeq } from "../../shared/application-no.ts";
 import { createdHistoryEvent, ensureHistory, type HistoryEvent } from "../../shared/history.ts";
 import { applyManagerChange, applyStatusChange } from "../../shared/workflow.ts";
 import { addNotification } from "./notifications";
@@ -14,6 +15,7 @@ export type PublicPartner = {
   email: string;
   documents: PartnerDocument[];
   createdAt: string;
+  seq: number;
   status: ApplicationStatus;
   responsibleManager: string;
   activatedBy: string;
@@ -64,7 +66,7 @@ function readAll(): StoredPartner[] {
     if (!Array.isArray(parsed)) {
       return [];
     }
-    return parsed.map((item) => ({
+    const mapped = parsed.map((item) => ({
       ...item,
       unp: item.unp ?? "",
       email: item.email ?? "",
@@ -75,6 +77,11 @@ function readAll(): StoredPartner[] {
       activatedAt: item.activatedAt ?? "",
       history: ensureHistory(item.history, item.createdAt),
     }));
+    const numbered = fillApplicationSeq(mapped);
+    if (applicationSeqChanged(mapped, numbered)) {
+      writeAll(numbered);
+    }
+    return numbered;
   } catch {
     return [];
   }
@@ -94,6 +101,7 @@ function toPublic(partner: StoredPartner): PublicPartner {
     email: partner.email ?? "",
     documents: partner.documents ?? [],
     createdAt: partner.createdAt,
+    seq: Number(partner.seq) > 0 ? Number(partner.seq) : 0,
     status: normalizeStatus(partner.status),
     responsibleManager: partner.responsibleManager || partner.activatedBy || "",
     activatedBy: partner.activatedBy ?? "",
@@ -138,6 +146,7 @@ export function registerLocalPartner(input: {
     email: input.email ?? "",
     documents: sanitizePartnerDocuments(input.documents),
     createdAt,
+    seq: nextApplicationSeq(partners),
     status: "pending",
     responsibleManager: "",
     activatedBy: "",

@@ -314,8 +314,8 @@ input {
   --filter: #ea580c;
 }
 
-.filter-card--teal {
-  --filter: #0d9488;
+.filter-card--purple {
+  --filter: #7c3aed;
 }
 
 .filter-card--green {
@@ -1256,24 +1256,52 @@ input {
   color: var(--muted);
 }
 
-.notice-page__groups {
-  display: grid;
-  gap: 24px;
-}
-
-.notice-group h2 {
+.notice-tabs {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin: 0 0 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--line);
 }
 
-.notice-group h2 span {
+.notice-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: -1px;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.notice-tab span {
   color: var(--muted);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
+}
+
+.notice-tab.is-active {
+  color: var(--ink);
+  border-bottom-color: var(--brand);
+}
+
+.datetime-cell {
+  display: grid;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.datetime-cell__date {
+  color: var(--ink);
+}
+
+.datetime-cell__time {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .user-menu {
@@ -1605,8 +1633,8 @@ input {
 }
 
 .admin-status--accepted {
-  border-color: #0d9488;
-  background: #f0fdfa;
+  border-color: #7c3aed;
+  background: #f5f3ff;
 }
 
 .admin-status--approved,
@@ -1932,8 +1960,8 @@ input {
 }
 
 .status-pill--accepted {
-  background: #f0fdfa;
-  color: #0f766e;
+  background: #f5f3ff;
+  color: #6d28d9;
 }
 
 .status-pill--approved {

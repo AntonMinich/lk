@@ -6,6 +6,17 @@ export function formatDateTime(value: string) {
   return date.toLocaleString("ru-BY");
 }
 
+export function formatDateParts(value: string): { date: string; time: string } | null {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return {
+    date: date.toLocaleDateString("ru-BY"),
+    time: date.toLocaleTimeString("ru-BY", { hour: "2-digit", minute: "2-digit" }),
+  };
+}
+
 export function formatFileSize(size: number) {
   if (!Number.isFinite(size) || size < 0) {
     return "";

@@ -14,11 +14,11 @@ export type ApplicationFilterKey = "all" | "pending" | "accepted" | "approved" |
 export const APPLICATION_FILTERS: {
   key: ApplicationFilterKey;
   label: string;
-  tone: "blue" | "orange" | "teal" | "green" | "red";
+  tone: "blue" | "orange" | "purple" | "green" | "red";
 }[] = [
   { key: "all", label: "Все заявки", tone: "blue" },
   { key: "pending", label: "Новые", tone: "orange" },
-  { key: "accepted", label: "На проверке", tone: "teal" },
+  { key: "accepted", label: "На проверке", tone: "purple" },
   { key: "approved", label: "Одобрено", tone: "green" },
   { key: "rejected", label: "Отклонено", tone: "red" },
 ];

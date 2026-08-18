@@ -30,6 +30,7 @@ const baseUrl = `http://[::1]:${address.port}`;
 type PartnerPayload = {
   id?: string;
   phone?: string;
+  seq?: number;
   unp?: string;
   email?: string;
   documents?: { key?: string; fileName?: string }[];
@@ -157,6 +158,7 @@ try {
   assert.equal(listed.status, 200);
   const application = listed.data.partners?.find((item) => item.phone === "+375447574025");
   assert.equal(application?.status, "pending");
+  assert.equal(application?.seq, 1);
   assert.equal(application?.unp, "123456789");
   assert.equal(application?.email, "anton@example.by");
   assert.equal(application?.documents?.length, 3);
