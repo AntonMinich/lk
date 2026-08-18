@@ -69,10 +69,7 @@ export function LoginPage() {
   }
 
   return (
-    <AuthLayout
-      title="Вход в кабинет"
-      subtitle="Войти можно после одобрения заявки на регистрацию."
-    >
+    <AuthLayout title="Вход в кабинет">
       {registered && (
         <p className="banner banner--ok" role="status">
           Заявка отправлена. Вход откроется после одобрения: телефон и УНП в качестве временного пароля.

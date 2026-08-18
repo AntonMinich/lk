@@ -5,6 +5,7 @@ import { AuthProvider } from "./lib/auth";
 import { AdminLeasingDetailPage } from "./pages/AdminLeasingDetailPage";
 import { AdminLeasingListPage } from "./pages/AdminLeasingListPage";
 import { AdminLoginPage } from "./pages/AdminLoginPage";
+import { AdminPartnerDirectoryPage } from "./pages/AdminPartnerDirectoryPage";
 import { AdminPartnerDetailPage } from "./pages/AdminPartnerDetailPage";
 import { AdminPartnerListPage } from "./pages/AdminPartnerListPage";
 import { AdminProfilePage } from "./pages/AdminProfilePage";
@@ -35,6 +36,9 @@ export default function App() {
           <Route path="/admin/partners" element={<AdminPartnerListPage />} />
           <Route path="/admin/partners/:id" element={<AdminPartnerDetailPage />} />
           <Route path="/admin/partners/:id/history" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/directory" element={<AdminPartnerDirectoryPage />} />
+          <Route path="/admin/directory/:id" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/directory/:id/history" element={<AdminPartnerDetailPage />} />
           <Route path="/admin/leasing" element={<AdminLeasingListPage />} />
           <Route path="/admin/leasing/:id" element={<AdminLeasingDetailPage />} />
           <Route path="/admin/leasing/:id/history" element={<AdminLeasingDetailPage />} />

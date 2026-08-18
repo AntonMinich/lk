@@ -8,6 +8,7 @@ import { useAuth } from "../lib/auth";
 const NAV = [
   { to: "/admin/partners", label: "Заявки на регистрацию партнера" },
   { to: "/admin/leasing", label: "Заявки на лизинг" },
+  { to: "/admin/directory", label: "Партнеры" },
 ];
 
 export function AdminGate() {
@@ -38,6 +39,7 @@ export function AdminLayout() {
             <NavLink
               key={item.to}
               to={item.to}
+              end={item.to === "/admin/partners"}
               className={({ isActive }) =>
                 isActive ? "admin-nav__link is-active" : "admin-nav__link"
               }

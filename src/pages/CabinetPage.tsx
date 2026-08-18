@@ -1,24 +1,42 @@
+import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AdminApplicationTable } from "../components/AdminApplicationTable";
+import { StatusFilterBar } from "../components/StatusFilterBar";
 import { PageHeader } from "../components/ui/PageHeader";
 import { useAuth } from "../lib/auth";
 import { formatDateTime } from "../lib/format";
 import { listLocalLeasingByPartner } from "../lib/leasing";
-import { STATUS_LABEL, statusRank } from "../lib/status";
+import {
+  matchesApplicationFilter,
+  STATUS_LABEL,
+  statusRank,
+  type ApplicationFilterKey,
+} from "../lib/status";
 
 export function CabinetPage() {
   const { partner } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const created = Boolean((location.state as { created?: boolean } | null)?.created);
+  const [filter, setFilter] = useState<ApplicationFilterKey>("all");
+
+  const applications = useMemo(() => {
+    if (!partner) {
+      return [];
+    }
+    return listLocalLeasingByPartner(partner.id).sort(
+      (a, b) => statusRank(a.status) - statusRank(b.status) || b.createdAt.localeCompare(a.createdAt),
+    );
+  }, [partner]);
+
+  const rows = useMemo(
+    () => applications.filter((item) => matchesApplicationFilter(item.status, filter)),
+    [applications, filter],
+  );
 
   if (!partner) {
     return null;
   }
-
-  const applications = listLocalLeasingByPartner(partner.id).sort(
-    (a, b) => statusRank(a.status) - statusRank(b.status) || b.createdAt.localeCompare(a.createdAt),
-  );
 
   return (
     <section className="admin-page">
@@ -28,9 +46,14 @@ export function CabinetPage() {
           Заявка отправлена. Её можно отслеживать в списке ниже.
         </p>
       ) : null}
+      <StatusFilterBar items={applications} value={filter} onChange={setFilter} />
       <AdminApplicationTable
-        rows={applications}
-        empty="Пока нет заявок. Нажмите «Создать заявку»."
+        rows={rows}
+        empty={
+          applications.length === 0
+            ? "Пока нет заявок. Нажмите «Создать заявку»."
+            : "Нет заявок в этом отборе."
+        }
         onRowClick={(item) => navigate(`/cabinet/applications/${item.id}`)}
         columns={[
           {

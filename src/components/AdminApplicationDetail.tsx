@@ -90,7 +90,7 @@ export function AdminApplicationDetail({
           Отклонить
         </button>
       ) : null}
-      {status === "approved" ? (
+      {status === "approved" || status === "active" ? (
         <button type="button" className="action-btn action-btn--reject" disabled={busy} onClick={onBlock}>
           Заблокировать
         </button>

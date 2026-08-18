@@ -179,6 +179,17 @@ export class PartnerStore {
     return partners[index];
   }
 
+  async activateCabinet(id: string): Promise<PartnerRecord | undefined> {
+    const current = await this.findById(id);
+    if (!current) {
+      return undefined;
+    }
+    if (normalizeStatus(current.status) !== "approved") {
+      return current;
+    }
+    return this.setStatus(id, "active", "Партнёр");
+  }
+
   async setManager(id: string, manager: string, actor: string): Promise<PartnerRecord | undefined> {
     const partners = await this.list();
     const index = partners.findIndex((item) => item.id === id);

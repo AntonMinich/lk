@@ -1,45 +1,38 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminApplicationTable } from "../components/AdminApplicationTable";
-import { PageHeader, StatGrid } from "../components/ui/PageHeader";
+import { StatusFilterBar } from "../components/StatusFilterBar";
+import { PageHeader } from "../components/ui/PageHeader";
 import { listLocalLeasing, type LeasingApplication } from "../lib/leasing";
 import { formatDateTime } from "../lib/format";
 import { formatPhoneDisplay } from "../lib/phone";
-import { STATUS_LABEL, statusRank } from "../lib/status";
+import {
+  matchesApplicationFilter,
+  STATUS_LABEL,
+  statusRank,
+  type ApplicationFilterKey,
+} from "../lib/status";
 
 export function AdminLeasingListPage() {
   const navigate = useNavigate();
-  const rows = useMemo(() => {
+  const [filter, setFilter] = useState<ApplicationFilterKey>("all");
+  const queue = useMemo(() => {
     const items = listLocalLeasing();
     items.sort((a, b) => statusRank(a.status) - statusRank(b.status) || b.createdAt.localeCompare(a.createdAt));
     return items;
   }, []);
+  const rows = useMemo(
+    () => queue.filter((item) => matchesApplicationFilter(item.status, filter)),
+    [filter, queue],
+  );
 
   return (
     <section className="admin-page">
-      <PageHeader title="Заявки на лизинг" subtitle={`${rows.length} заявок в работе системы`} />
-      <StatGrid
-        items={[
-          { label: "Всего", value: rows.length },
-          {
-            label: "На рассмотрении",
-            value: rows.filter((item) => item.status === "pending").length,
-            tone: "warning",
-          },
-          {
-            label: "В работе",
-            value: rows.filter((item) => item.status === "accepted").length,
-          },
-          {
-            label: "Одобрены",
-            value: rows.filter((item) => item.status === "approved").length,
-            tone: "success",
-          },
-        ]}
-      />
+      <PageHeader title="Заявки на лизинг" subtitle="Отбор по статусу среди активных заявок" />
+      <StatusFilterBar items={queue} value={filter} onChange={setFilter} />
       <AdminApplicationTable
         rows={rows}
-        empty="Пока нет заявок на лизинг."
+        empty={queue.length === 0 ? "Пока нет заявок на лизинг." : "Нет заявок в этом отборе."}
         onRowClick={(item) => navigate(`/admin/leasing/${item.id}`)}
         columns={[
           {

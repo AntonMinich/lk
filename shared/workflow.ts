@@ -27,6 +27,13 @@ export function applyStatusChange(
         text: actor ? `${actor} принял заявку в работу` : "Заявка принята в работу",
       }),
     );
+  } else if (status === "active") {
+    history.push(
+      createHistoryEvent({
+        actor,
+        text: "Партнёр активировал личный кабинет",
+      }),
+    );
   } else {
     history.push(
       createHistoryEvent({

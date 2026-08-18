@@ -6,7 +6,7 @@ import { formatDateTime } from "../lib/format";
 import { formatPhoneDisplay } from "../lib/phone";
 import { partnerDocumentLabel } from "../lib/partner-docs";
 import type { PublicPartner } from "../lib/api";
-import type { ApplicationStatus } from "../lib/status";
+import { isDirectoryPartner, type ApplicationStatus } from "../lib/status";
 
 export function AdminPartnerDetailPage() {
   const { id } = useParams();
@@ -81,18 +81,23 @@ export function AdminPartnerDetailPage() {
     setPartner(result.partner);
   }
 
+  const fromDirectory = location.pathname.startsWith("/admin/directory") || isDirectoryPartner(current.status);
+  const listHref = fromDirectory ? "/admin/directory" : "/admin/partners";
+  const listLabel = fromDirectory ? "Партнеры" : "Заявки на регистрацию";
+  const detailHref = fromDirectory ? `/admin/directory/${current.id}` : `/admin/partners/${current.id}`;
+
   return (
     <AdminApplicationDetail
-      title="Заявка на регистрацию партнера"
+      title={fromDirectory ? "Партнёр" : "Заявка на регистрацию партнера"}
       crumbs={[
-        { label: "Заявки на регистрацию", to: "/admin/partners" },
-        { label: current.companyName || "Заявка" },
+        { label: listLabel, to: listHref },
+        { label: current.companyName || (fromDirectory ? "Партнёр" : "Заявка") },
       ]}
       status={current.status}
       manager={current.responsibleManager}
       history={current.history}
-      historyHref={`/admin/partners/${current.id}/history`}
-      backHref={`/admin/partners/${current.id}`}
+      historyHref={`${detailHref}/history`}
+      backHref={detailHref}
       showHistory={showHistory}
       busy={busy}
       error={error}

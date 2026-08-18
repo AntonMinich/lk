@@ -5,7 +5,7 @@ import { OsMark } from "./OsMark";
 
 type AuthLayoutProps = {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   kicker?: string;
   children: ReactNode;
   footer?: ReactNode;
@@ -29,7 +29,7 @@ export function AuthLayout({
             <DemoChip />
           </div>
           <h1>{title}</h1>
-          <p className="auth-card__subtitle">{subtitle}</p>
+          {subtitle ? <p className="auth-card__subtitle">{subtitle}</p> : null}
           {children}
           {footer}
         </div>

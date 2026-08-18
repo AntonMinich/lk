@@ -214,8 +214,9 @@ export function createApp(options: CreateAppOptions) {
       return;
     }
 
-    setSession(res, partner.id);
-    res.json({ partner: toPublicPartner(partner) });
+    const current = (await store.activateCabinet(partner.id)) ?? partner;
+    setSession(res, current.id);
+    res.json({ partner: toPublicPartner(current) });
   });
 
   app.post("/api/logout", (req, res) => {
@@ -318,7 +319,8 @@ export function createApp(options: CreateAppOptions) {
       return;
     }
 
-    res.json({ partner: toPublicPartner(partner) });
+    const current = (await store.activateCabinet(partner.id)) ?? partner;
+    res.json({ partner: toPublicPartner(current) });
   });
 
   if (options.distDir) {
