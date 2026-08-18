@@ -2,7 +2,6 @@ import { useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../components/AuthLayout";
 import { PhoneField } from "../components/PhoneField";
-import { ServerStatusBanner } from "../components/ServerStatusBanner";
 import { useAuth } from "../lib/auth";
 import { validatePartnerPhone } from "../lib/phone";
 
@@ -93,7 +92,6 @@ export function RegisterPage() {
         </p>
       }
     >
-      <ServerStatusBanner />
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <div className="field">
           <label htmlFor="company">Название организации</label>

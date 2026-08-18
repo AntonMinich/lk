@@ -23,6 +23,7 @@ type Session = {
 };
 
 type AdminSession = {
+  login: string;
   expiresAt: number;
 };
 
@@ -80,9 +81,9 @@ export function createApp(options: CreateAppOptions) {
     });
   }
 
-  function setAdminSession(res: Response) {
+  function setAdminSession(res: Response, login: string) {
     const token = randomBytes(24).toString("hex");
-    adminSessions.set(token, { expiresAt: Date.now() + SESSION_TTL_MS });
+    adminSessions.set(token, { login, expiresAt: Date.now() + SESSION_TTL_MS });
     res.cookie(ADMIN_COOKIE, token, {
       httpOnly: true,
       sameSite: "lax",
@@ -107,12 +108,13 @@ export function createApp(options: CreateAppOptions) {
     res.clearCookie(ADMIN_COOKIE, { path: "/" });
   }
 
-  function requireAdmin(req: Request, res: Response): boolean {
-    if (readAdminSession(req)) {
-      return true;
+  function requireAdmin(req: Request, res: Response): AdminSession | null {
+    const session = readAdminSession(req);
+    if (session) {
+      return session;
     }
     res.status(401).json({ message: "Нужна авторизация администратора" });
-    return false;
+    return null;
   }
 
   app.get("/api/health", (_req, res) => {
@@ -210,8 +212,8 @@ export function createApp(options: CreateAppOptions) {
       res.status(401).json({ message: "Неверный логин или пароль администратора" });
       return;
     }
-    setAdminSession(res);
-    res.json({ ok: true });
+    setAdminSession(res, login);
+    res.json({ ok: true, login });
   });
 
   app.post("/api/admin/logout", (req, res) => {
@@ -220,10 +222,11 @@ export function createApp(options: CreateAppOptions) {
   });
 
   app.get("/api/admin/me", (req, res) => {
-    if (!requireAdmin(req, res)) {
+    const session = requireAdmin(req, res);
+    if (!session) {
       return;
     }
-    res.json({ ok: true });
+    res.json({ ok: true, login: session.login });
   });
 
   app.get("/api/partners", async (req, res) => {
@@ -235,7 +238,8 @@ export function createApp(options: CreateAppOptions) {
   });
 
   app.patch("/api/partners/:id/status", async (req, res) => {
-    if (!requireAdmin(req, res)) {
+    const session = requireAdmin(req, res);
+    if (!session) {
       return;
     }
 
@@ -245,7 +249,7 @@ export function createApp(options: CreateAppOptions) {
       return;
     }
 
-    const partner = await store.setStatus(req.params.id, status);
+    const partner = await store.setStatus(req.params.id, status, session.login);
     if (!partner) {
       res.status(404).json({ message: "Заявка не найдена" });
       return;

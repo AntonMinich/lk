@@ -7,6 +7,8 @@ export type PublicPartner = {
   contactName: string;
   createdAt: string;
   status: ApplicationStatus;
+  activatedBy: string;
+  activatedAt: string;
 };
 
 type ApiError = {
@@ -97,14 +99,14 @@ export function adminLogoutRequest() {
 }
 
 export function adminLoginRequest(login: string, password: string) {
-  return request<{ ok: true }>("/api/admin/login", {
+  return request<{ ok: true; login: string }>("/api/admin/login", {
     method: "POST",
     body: JSON.stringify({ login, password }),
   });
 }
 
 export function adminMeRequest() {
-  return request<{ ok: true }>("/api/admin/me");
+  return request<{ ok: true; login: string }>("/api/admin/me");
 }
 
 export function setPartnerStatusRequest(id: string, status: ApplicationStatus) {

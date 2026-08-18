@@ -1,5 +1,5 @@
 import { useId, useState, type ChangeEvent } from "react";
-import { extractLocalDigits, LOCAL_LENGTH, OPERATOR_CODES } from "../lib/phone";
+import { extractLocalDigits, LOCAL_LENGTH } from "../lib/phone";
 
 type PhoneFieldProps = {
   label?: string;
@@ -21,7 +21,6 @@ export function PhoneField({
   autoComplete = "tel",
 }: PhoneFieldProps) {
   const id = useId();
-  const describedBy = error ? `${id}-error` : `${id}-hint`;
   const local = extractLocalDigits(value);
   const [focused, setFocused] = useState(false);
 
@@ -81,7 +80,7 @@ export function PhoneField({
               onBlur?.();
             }}
             aria-invalid={Boolean(error)}
-            aria-describedby={describedBy}
+            aria-describedby={error ? `${id}-error` : undefined}
             maxLength={16}
           />
         </div>
@@ -90,11 +89,7 @@ export function PhoneField({
         <p id={`${id}-error`} className="field__error" role="alert">
           {error}
         </p>
-      ) : (
-        <p id={`${id}-hint`} className="field__hint">
-          +375, затем оператор {OPERATOR_CODES.join(", ")} и 7 цифр номера
-        </p>
-      )}
+      ) : null}
     </div>
   );
 }

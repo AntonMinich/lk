@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import type { ReactNode } from "react";
 import { BrandMark } from "./BrandMark";
-import { BRAND_SLOGAN } from "../lib/brand";
 
 type AuthLayoutProps = {
   title: string;
@@ -25,7 +24,6 @@ export function AuthLayout({
           <Link to="/" className="logo logo--wordmark auth-card__logo">
             <BrandMark />
           </Link>
-          <p className="logo__slogan">{BRAND_SLOGAN}</p>
           <p className="auth-brand__kicker">{kicker}</p>
           <h1>{title}</h1>
           <p className="auth-card__subtitle">{subtitle}</p>

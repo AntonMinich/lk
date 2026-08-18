@@ -26,6 +26,11 @@
 }
 
 html,
+body {
+  overflow-x: hidden;
+}
+
+html,
 body,
 #root {
   min-height: 100%;
@@ -416,11 +421,231 @@ input {
   color: var(--blue);
 }
 
-.table-wrap {
-  overflow: auto;
+.admin-shell {
+  display: grid;
+  grid-template-columns: 268px minmax(0, 1fr);
+  min-height: 100vh;
+  overflow-x: hidden;
   background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: 16px;
+}
+
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 16px;
+  border-right: 1px solid var(--line);
+  background: #fafbfe;
+  min-width: 0;
+}
+
+.admin-sidebar__brand {
+  padding: 0 8px 8px;
+}
+
+.admin-sidebar__brand .logo__image {
+  height: 40px;
+  max-width: 180px;
+}
+
+.admin-sidebar__kicker {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.admin-nav {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-nav__link {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.admin-nav__link:hover,
+.admin-nav__link.is-active {
+  background: var(--white);
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.admin-nav__link.is-active {
+  color: var(--blue);
+}
+
+.admin-sidebar__logout {
+  margin-top: auto;
+  align-self: start;
+  padding: 10px 14px;
+}
+
+.admin-content {
+  min-width: 0;
+}
+
+.admin-page {
+  padding: 28px 28px 32px;
+  min-width: 0;
+}
+
+.admin-page h1 {
+  margin-bottom: 20px;
+}
+
+.admin-empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+.admin-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 12px 10px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.admin-table th {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.admin-table tbody tr {
+  cursor: pointer;
+}
+
+.admin-table tbody tr:hover {
+  background: #f7f8fc;
+}
+
+.admin-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  align-items: stretch;
+  min-height: 100%;
+}
+
+.admin-detail__form {
+  padding: 28px 32px 32px;
+  min-width: 0;
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-actions {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 28px 18px;
+  border-left: 1px solid var(--line);
+  background: #fafbfe;
+}
+
+.admin-actions__title {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.admin-actions .action-btn {
+  width: 100%;
+  min-height: 48px;
+}
+
+.status-pill--blocked {
+  background: #eef0f6;
+  color: var(--muted);
+}
+
+@media (max-width: 960px) {
+  .admin-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .admin-nav {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-actions {
+    order: -1;
+    border-left: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .admin-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-table thead {
+    display: none;
+  }
+
+  .admin-table,
+  .admin-table tbody,
+  .admin-table tr,
+  .admin-table th,
+  .admin-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-table tr {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .admin-table td {
+    border: 0;
+    padding: 6px 0;
+  }
+
+  .admin-table td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 2px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
 }
 
 .partners-table {
@@ -487,7 +712,7 @@ input {
   border-radius: 999px;
   font-size: 0.82rem;
   font-weight: 600;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .status-pill--pending {
