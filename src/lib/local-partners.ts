@@ -1,5 +1,7 @@
 import { ADMIN_DEMO } from "../../shared/admin.ts";
+import { createdHistoryEvent, ensureHistory, type HistoryEvent } from "../../shared/history.ts";
 import { loginBlockedMessage, normalizeStatus, type ApplicationStatus } from "./status";
+import { applyManagerChange, applyStatusChange } from "../../shared/workflow.ts";
 
 export type PublicPartner = {
   id: string;
@@ -8,8 +10,10 @@ export type PublicPartner = {
   contactName: string;
   createdAt: string;
   status: ApplicationStatus;
+  responsibleManager: string;
   activatedBy: string;
   activatedAt: string;
+  history: HistoryEvent[];
 };
 
 type StoredPartner = PublicPartner & { password: string };
@@ -19,6 +23,16 @@ const SESSION_KEY = "lk-local-session";
 const ADMIN_KEY = "lk-admin-session";
 
 export { ADMIN_DEMO };
+
+function workflowOf(partner: StoredPartner) {
+  return {
+    status: partner.status,
+    responsibleManager: partner.responsibleManager,
+    activatedBy: partner.activatedBy,
+    activatedAt: partner.activatedAt,
+    history: partner.history,
+  };
+}
 
 function readAll(): StoredPartner[] {
   try {
@@ -30,8 +44,10 @@ function readAll(): StoredPartner[] {
     return parsed.map((item) => ({
       ...item,
       status: normalizeStatus(item.status),
+      responsibleManager: item.responsibleManager || item.activatedBy || "",
       activatedBy: item.activatedBy ?? "",
       activatedAt: item.activatedAt ?? "",
+      history: ensureHistory(item.history, item.createdAt),
     }));
   } catch {
     return [];
@@ -50,8 +66,10 @@ function toPublic(partner: StoredPartner): PublicPartner {
     contactName: partner.contactName,
     createdAt: partner.createdAt,
     status: normalizeStatus(partner.status),
+    responsibleManager: partner.responsibleManager || partner.activatedBy || "",
     activatedBy: partner.activatedBy ?? "",
     activatedAt: partner.activatedAt ?? "",
+    history: ensureHistory(partner.history, partner.createdAt),
   };
 }
 
@@ -74,16 +92,19 @@ export function registerLocalPartner(input: {
   if (partners.some((item) => item.phone === input.phone)) {
     return { ok: false, message: "Партнёр с таким номером уже зарегистрирован" };
   }
+  const createdAt = new Date().toISOString();
   const partner: StoredPartner = {
     id: crypto.randomUUID(),
     phone: input.phone,
     password: input.password,
     companyName: input.companyName,
     contactName: input.contactName,
-    createdAt: new Date().toISOString(),
+    createdAt,
     status: "pending",
+    responsibleManager: "",
     activatedBy: "",
     activatedAt: "",
+    history: [createdHistoryEvent(createdAt)],
   };
   writeAll([...partners, partner]);
   return { ok: true, partner: toPublic(partner) };
@@ -123,14 +144,34 @@ export function setLocalPartnerStatus(
   if (!current) {
     return null;
   }
-  const next: StoredPartner = { ...current, status };
-  if (status === "approved") {
-    next.activatedBy = manager || current.activatedBy || "";
-    next.activatedAt = new Date().toISOString();
-  }
+  const next: StoredPartner = { ...current, ...applyStatusChange(workflowOf(current), status, manager) };
   partners[index] = next;
   writeAll(partners);
   return toPublic(next);
+}
+
+export function setLocalPartnerManager(
+  id: string,
+  manager: string,
+  actor = "",
+): { ok: true; partner: PublicPartner } | { ok: false; message: string } {
+  const partners = readAll();
+  const index = partners.findIndex((item) => item.id === id);
+  if (index < 0) {
+    return { ok: false, message: "Заявка не найдена" };
+  }
+  const current = partners[index];
+  if (!current) {
+    return { ok: false, message: "Заявка не найдена" };
+  }
+  const result = applyManagerChange(workflowOf(current), manager, actor);
+  if (!result.ok) {
+    return result;
+  }
+  const next: StoredPartner = { ...current, ...result.state };
+  partners[index] = next;
+  writeAll(partners);
+  return { ok: true, partner: toPublic(next) };
 }
 
 export function readLocalSession(): PublicPartner | null {
@@ -140,12 +181,7 @@ export function readLocalSession(): PublicPartner | null {
       return null;
     }
     const parsed = JSON.parse(raw) as PublicPartner;
-    const partner = {
-      ...parsed,
-      status: normalizeStatus(parsed.status),
-      activatedBy: parsed.activatedBy ?? "",
-      activatedAt: parsed.activatedAt ?? "",
-    };
+    const partner = toPublic({ ...parsed, password: "" });
     if (loginBlockedMessage(partner.status)) {
       sessionStorage.removeItem(SESSION_KEY);
       return null;

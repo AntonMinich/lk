@@ -258,6 +258,27 @@ export function createApp(options: CreateAppOptions) {
     res.json({ partner: toPublicPartner(partner) });
   });
 
+  app.patch("/api/partners/:id/manager", async (req, res) => {
+    const session = requireAdmin(req, res);
+    if (!session) {
+      return;
+    }
+
+    const manager = String(req.body?.manager ?? "").trim();
+    if (!manager) {
+      res.status(400).json({ message: "Укажите ответственного менеджера" });
+      return;
+    }
+
+    const partner = await store.setManager(req.params.id, manager, session.login);
+    if (!partner) {
+      res.status(404).json({ message: "Заявка не найдена" });
+      return;
+    }
+
+    res.json({ partner: toPublicPartner(partner) });
+  });
+
   app.get("/api/me", async (req, res) => {
     const session = readSession(req);
     if (!session) {

@@ -10,6 +10,7 @@ import {
   logoutRequest,
   registerRequest,
   setPartnerStatusRequest,
+  setPartnerManagerRequest,
   type PublicPartner,
 } from "./api";
 import {
@@ -22,11 +23,15 @@ import {
   loginLocalPartner,
   readLocalSession,
   registerLocalPartner,
+  setLocalPartnerManager,
   setLocalPartnerStatus,
 } from "./local-partners";
 import type { ApplicationStatus } from "./status";
 
 type AuthResult = { ok: true } | { ok: false; message: string };
+type PartnerMutationResult =
+  | { ok: true; partner: PublicPartner }
+  | { ok: false; message: string };
 
 type AuthContextValue = {
   ready: boolean;
@@ -45,7 +50,8 @@ type AuthContextValue = {
   loginAdmin: (login: string, password: string) => Promise<AuthResult>;
   logoutAdmin: () => Promise<void>;
   listPartners: () => Promise<PublicPartner[]>;
-  setPartnerStatus: (id: string, status: ApplicationStatus) => Promise<AuthResult>;
+  setPartnerStatus: (id: string, status: ApplicationStatus) => Promise<PartnerMutationResult>;
+  setPartnerManager: (id: string, manager: string) => Promise<PartnerMutationResult>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -197,8 +203,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setPartnerStatus: async (id, status) => {
         if (apiOnline) {
           try {
-            await setPartnerStatusRequest(id, status);
-            return { ok: true };
+            const data = await setPartnerStatusRequest(id, status);
+            return { ok: true, partner: data.partner };
           } catch (error) {
             return {
               ok: false,
@@ -210,7 +216,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!updated) {
           return { ok: false, message: "Заявка не найдена" };
         }
-        return { ok: true };
+        return { ok: true, partner: updated };
+      },
+      setPartnerManager: async (id, manager) => {
+        if (apiOnline) {
+          try {
+            const data = await setPartnerManagerRequest(id, manager);
+            return { ok: true, partner: data.partner };
+          } catch (error) {
+            return {
+              ok: false,
+              message: error instanceof Error ? error.message : "Не удалось сменить менеджера",
+            };
+          }
+        }
+        return setLocalPartnerManager(id, manager, adminName);
       },
     }),
     [admin, adminName, apiOnline, partner, ready],
