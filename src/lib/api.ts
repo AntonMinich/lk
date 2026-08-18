@@ -1,4 +1,5 @@
 import type { HistoryEvent } from "../../shared/history.ts";
+import type { PartnerDocument } from "./partner-docs";
 import type { ApplicationStatus } from "./status";
 
 export type PublicPartner = {
@@ -6,6 +7,9 @@ export type PublicPartner = {
   phone: string;
   companyName: string;
   contactName: string;
+  unp: string;
+  email: string;
+  documents: PartnerDocument[];
   createdAt: string;
   status: ApplicationStatus;
   responsibleManager: string;
@@ -87,6 +91,9 @@ export function registerRequest(input: {
   password: string;
   companyName: string;
   contactName: string;
+  unp?: string;
+  email?: string;
+  documents?: PublicPartner["documents"];
 }) {
   return request<{ ok: true }>("/api/register", {
     method: "POST",

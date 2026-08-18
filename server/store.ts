@@ -1,11 +1,19 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { sanitizePartnerDocuments } from "../shared/partner-docs.ts";
 import { createdHistoryEvent, ensureHistory, type HistoryEvent } from "../shared/history.ts";
 import { normalizeStatus, type ApplicationStatus } from "../shared/status.ts";
 import { applyManagerChange, applyStatusChange } from "../shared/workflow.ts";
 
 export type { ApplicationStatus, HistoryEvent };
+
+type PartnerDocument = {
+  key: string;
+  fileName: string;
+  size: number;
+  mime: string;
+};
 
 export type PartnerRecord = {
   id: string;
@@ -13,6 +21,9 @@ export type PartnerRecord = {
   passwordHash: string;
   companyName: string;
   contactName: string;
+  unp: string;
+  email: string;
+  documents: PartnerDocument[];
   createdAt: string;
   status: ApplicationStatus;
   responsibleManager: string;
@@ -26,6 +37,9 @@ export type PublicPartner = {
   phone: string;
   companyName: string;
   contactName: string;
+  unp: string;
+  email: string;
+  documents: PartnerDocument[];
   createdAt: string;
   status: ApplicationStatus;
   responsibleManager: string;
@@ -38,6 +52,9 @@ function withDefaults(record: PartnerRecord): PartnerRecord {
   const createdAt = record.createdAt;
   return {
     ...record,
+    unp: record.unp ?? "",
+    email: record.email ?? "",
+    documents: Array.isArray(record.documents) ? record.documents : [],
     status: normalizeStatus(record.status),
     responsibleManager: record.responsibleManager || record.activatedBy || "",
     activatedBy: record.activatedBy ?? "",
@@ -63,6 +80,9 @@ export function toPublicPartner(record: PartnerRecord): PublicPartner {
     phone: normalized.phone,
     companyName: normalized.companyName,
     contactName: normalized.contactName,
+    unp: normalized.unp,
+    email: normalized.email,
+    documents: normalized.documents,
     createdAt: normalized.createdAt,
     status: normalized.status,
     responsibleManager: normalized.responsibleManager,
@@ -95,6 +115,14 @@ export class PartnerStore {
     return partners.find((item) => item.phone === phone);
   }
 
+  async findByUnp(unp: string): Promise<PartnerRecord | undefined> {
+    if (!unp) {
+      return undefined;
+    }
+    const partners = await this.list();
+    return partners.find((item) => item.unp === unp);
+  }
+
   async findById(id: string): Promise<PartnerRecord | undefined> {
     const partners = await this.list();
     return partners.find((item) => item.id === id);
@@ -105,6 +133,9 @@ export class PartnerStore {
     passwordHash: string;
     companyName: string;
     contactName: string;
+    unp?: string;
+    email?: string;
+    documents?: PartnerDocument[];
   }): Promise<PartnerRecord> {
     const partners = await this.list();
     const createdAt = new Date().toISOString();
@@ -114,6 +145,9 @@ export class PartnerStore {
       passwordHash: input.passwordHash,
       companyName: input.companyName,
       contactName: input.contactName,
+      unp: input.unp ?? "",
+      email: input.email ?? "",
+      documents: sanitizePartnerDocuments(input.documents),
       createdAt,
       status: "pending",
       responsibleManager: "",

@@ -10,6 +10,7 @@ import {
   loginBlockedMessage,
   normalizeStatus,
 } from "../shared/status.ts";
+import { sanitizePartnerDocuments } from "../shared/partner-docs.ts";
 import { PartnerStore, toPublicPartner, type PublicPartner } from "./store.ts";
 import { proxyToVite } from "./vite-proxy.ts";
 
@@ -132,11 +133,18 @@ export function createApp(options: CreateAppOptions) {
   app.post("/api/register", async (req, res) => {
     const companyName = String(req.body?.companyName ?? "").trim();
     const contactName = String(req.body?.contactName ?? "").trim();
+    const unp = String(req.body?.unp ?? "").replace(/\D/g, "");
+    const email = String(req.body?.email ?? "").trim();
+    const documents = sanitizePartnerDocuments(req.body?.documents);
     const password = String(req.body?.password ?? "");
     const phoneResult = validatePartnerPhone(String(req.body?.phone ?? ""));
 
     if (!companyName) {
       res.status(400).json({ message: "Укажите название организации" });
+      return;
+    }
+    if (!contactName) {
+      res.status(400).json({ message: "Укажите ФИО контактного лица" });
       return;
     }
     if (!phoneResult.ok) {
@@ -153,6 +161,13 @@ export function createApp(options: CreateAppOptions) {
       res.status(409).json({ message: "Партнёр с таким номером уже зарегистрирован" });
       return;
     }
+    if (unp) {
+      const existingUnp = await store.findByUnp(unp);
+      if (existingUnp) {
+        res.status(409).json({ message: "Партнёр с таким УНП уже зарегистрирован" });
+        return;
+      }
+    }
 
     const passwordHash = await bcrypt.hash(password, 10);
     await store.create({
@@ -160,6 +175,9 @@ export function createApp(options: CreateAppOptions) {
       passwordHash,
       companyName,
       contactName,
+      unp,
+      email,
+      documents,
     });
 
     res.status(201).json({ ok: true });

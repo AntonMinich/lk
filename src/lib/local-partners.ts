@@ -2,6 +2,7 @@ import { findAdmin, isAdminLogin } from "../../shared/admin.ts";
 import { createdHistoryEvent, ensureHistory, type HistoryEvent } from "../../shared/history.ts";
 import { applyManagerChange, applyStatusChange } from "../../shared/workflow.ts";
 import { addNotification } from "./notifications";
+import { sanitizePartnerDocuments, type PartnerDocument } from "./partner-docs";
 import { loginBlockedMessage, normalizeStatus, STATUS_LABEL, type ApplicationStatus } from "./status";
 
 export type PublicPartner = {
@@ -9,6 +10,9 @@ export type PublicPartner = {
   phone: string;
   companyName: string;
   contactName: string;
+  unp: string;
+  email: string;
+  documents: PartnerDocument[];
   createdAt: string;
   status: ApplicationStatus;
   responsibleManager: string;
@@ -62,6 +66,9 @@ function readAll(): StoredPartner[] {
     }
     return parsed.map((item) => ({
       ...item,
+      unp: item.unp ?? "",
+      email: item.email ?? "",
+      documents: Array.isArray(item.documents) ? item.documents : [],
       status: normalizeStatus(item.status),
       responsibleManager: item.responsibleManager || item.activatedBy || "",
       activatedBy: item.activatedBy ?? "",
@@ -83,6 +90,9 @@ function toPublic(partner: StoredPartner): PublicPartner {
     phone: partner.phone,
     companyName: partner.companyName,
     contactName: partner.contactName,
+    unp: partner.unp ?? "",
+    email: partner.email ?? "",
+    documents: partner.documents ?? [],
     createdAt: partner.createdAt,
     status: normalizeStatus(partner.status),
     responsibleManager: partner.responsibleManager || partner.activatedBy || "",
@@ -106,10 +116,16 @@ export function registerLocalPartner(input: {
   password: string;
   companyName: string;
   contactName: string;
+  unp?: string;
+  email?: string;
+  documents?: PartnerDocument[];
 }): { ok: true; partner: PublicPartner } | { ok: false; message: string } {
   const partners = readAll();
   if (partners.some((item) => item.phone === input.phone)) {
     return { ok: false, message: "Партнёр с таким номером уже зарегистрирован" };
+  }
+  if (input.unp && partners.some((item) => item.unp === input.unp)) {
+    return { ok: false, message: "Партнёр с таким УНП уже зарегистрирован" };
   }
   const createdAt = new Date().toISOString();
   const partner: StoredPartner = {
@@ -118,6 +134,9 @@ export function registerLocalPartner(input: {
     password: input.password,
     companyName: input.companyName,
     contactName: input.contactName,
+    unp: input.unp ?? "",
+    email: input.email ?? "",
+    documents: sanitizePartnerDocuments(input.documents),
     createdAt,
     status: "pending",
     responsibleManager: "",

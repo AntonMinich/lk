@@ -30,6 +30,9 @@ const baseUrl = `http://[::1]:${address.port}`;
 type PartnerPayload = {
   id?: string;
   phone?: string;
+  unp?: string;
+  email?: string;
+  documents?: { key?: string; fileName?: string }[];
   status?: string;
   activatedBy?: string;
   responsibleManager?: string;
@@ -97,9 +100,28 @@ try {
       password: "test123",
       companyName: "ООО Партнёр",
       contactName: "Антон",
+      unp: "123456789",
+      email: "anton@example.by",
+      documents: [
+        { key: "agreement", fileName: "dogovor.pdf", size: 1200, mime: "application/pdf" },
+        { key: "registration", fileName: "reg.pdf", size: 800, mime: "application/pdf" },
+        { key: "charter", fileName: "ustav.pdf", size: 900, mime: "application/pdf" },
+      ],
     }),
   });
   assert.equal(registered.status, 201);
+
+  const duplicateUnp = await api("/api/register", {
+    method: "POST",
+    body: JSON.stringify({
+      phone: "+375297574025",
+      password: "test123",
+      companyName: "Другой партнёр",
+      contactName: "Пётр",
+      unp: "123456789",
+    }),
+  });
+  assert.equal(duplicateUnp.status, 409);
 
   const pendingLogin = await api("/api/login", {
     method: "POST",
@@ -135,6 +157,9 @@ try {
   assert.equal(listed.status, 200);
   const application = listed.data.partners?.find((item) => item.phone === "+375447574025");
   assert.equal(application?.status, "pending");
+  assert.equal(application?.unp, "123456789");
+  assert.equal(application?.email, "anton@example.by");
+  assert.equal(application?.documents?.length, 3);
   assert.ok(application?.id);
   assert.match(String(application.history?.[0]?.text), /поступила/i);
 
