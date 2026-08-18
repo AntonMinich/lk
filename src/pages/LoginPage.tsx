@@ -2,7 +2,6 @@ import { useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../components/AuthLayout";
 import { PhoneField } from "../components/PhoneField";
-import { ServerStatusBanner } from "../components/ServerStatusBanner";
 import { useAuth } from "../lib/auth";
 import { validatePartnerPhone } from "../lib/phone";
 
@@ -75,7 +74,6 @@ export function LoginPage() {
           Заявка отправлена. Вход откроется, когда её одобрят в админке.
         </p>
       )}
-      <ServerStatusBanner />
 
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <PhoneField

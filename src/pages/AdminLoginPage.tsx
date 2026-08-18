@@ -17,7 +17,7 @@ export function AdminLoginPage() {
   }
 
   if (admin) {
-    return <Navigate to="/admin/applications" replace />;
+    return <Navigate to="/admin/partners" replace />;
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -38,14 +38,14 @@ export function AdminLoginPage() {
       return;
     }
 
-    navigate("/admin/applications", { replace: true });
+    navigate("/admin/partners", { replace: true });
   }
 
   return (
     <AuthLayout
       kicker="Админка"
       title="Вход для сотрудников"
-      subtitle="Одобряйте заявки партнёров. Пока нет своего сервера, демо-доступ работает в этом браузере."
+      subtitle="Одобряйте заявки партнёров и лизинга."
       footer={
         <p className="auth-alt">
           Кабинет партнёра?{" "}
