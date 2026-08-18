@@ -1,43 +1,83 @@
-import { useId, type ChangeEvent } from "react";
-import { formatPhoneDisplay, extractLocalDigits, OPERATOR_CODES } from "../lib/phone";
+import { useId, useState, type ChangeEvent, Fragment } from "react";
+import { extractLocalDigits, OPERATOR_CODES, PHONE_MASK_SLOTS } from "../lib/phone";
 
 type PhoneFieldProps = {
+  label?: string;
   value: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
   error?: string;
   autoComplete?: string;
 };
 
-export function PhoneField({ value, onChange, error, autoComplete = "tel" }: PhoneFieldProps) {
+export function PhoneField({
+  label = "Номер телефона",
+  value,
+  onChange,
+  onBlur,
+  error,
+  autoComplete = "tel",
+}: PhoneFieldProps) {
   const id = useId();
   const describedBy = error ? `${id}-error` : `${id}-hint`;
+  const local = extractLocalDigits(value);
+  const [focused, setFocused] = useState(false);
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     onChange(extractLocalDigits(event.target.value));
   }
 
-  const display = formatPhoneDisplay(value);
-  const operator = extractLocalDigits(value).slice(0, 2);
-
   return (
     <div className={`field ${error ? "field--invalid" : ""}`}>
-      <label htmlFor={id}>Номер телефона</label>
+      <label htmlFor={id}>{label}</label>
       <div className="phone-input">
-        <span className="phone-input__prefix" aria-hidden="true">
-          +375
-        </span>
-        <input
-          id={id}
-          type="tel"
-          inputMode="numeric"
-          autoComplete={autoComplete}
-          placeholder="44 757-40-25"
-          value={display.replace(/^\+375\s?/, "")}
-          onChange={handleChange}
-          aria-invalid={Boolean(error)}
-          aria-describedby={describedBy}
-          maxLength={12}
-        />
+        <span className="phone-input__prefix">+375</span>
+        <div className="phone-input__body">
+          <div className="phone-input__mask" aria-hidden="true">
+            {PHONE_MASK_SLOTS.map((slot, slotIndex) => {
+              const caret =
+                focused && slot.kind === "digit" && slot.index === local.length ? (
+                  <span className="phone-input__caret" />
+                ) : null;
+
+              if (slot.kind === "sep") {
+                return (
+                  <Fragment key={`sep-${slotIndex}`}>
+                    <span className="phone-input__sep">{slot.char}</span>
+                  </Fragment>
+                );
+              }
+
+              const digit = local[slot.index];
+              return (
+                <Fragment key={`d-${slot.index}`}>
+                  {caret}
+                  <span className={digit ? "phone-input__digit" : "phone-input__x"}>
+                    {digit ?? "x"}
+                  </span>
+                </Fragment>
+              );
+            })}
+            {focused && local.length === 9 ? <span className="phone-input__caret" /> : null}
+          </div>
+          <input
+            id={id}
+            className="phone-input__control"
+            type="tel"
+            inputMode="numeric"
+            autoComplete={autoComplete}
+            value={local}
+            onChange={handleChange}
+            onFocus={() => setFocused(true)}
+            onBlur={() => {
+              setFocused(false);
+              onBlur?.();
+            }}
+            aria-invalid={Boolean(error)}
+            aria-describedby={describedBy}
+            maxLength={16}
+          />
+        </div>
       </div>
       {error ? (
         <p id={`${id}-error`} className="field__error" role="alert">
@@ -45,14 +85,7 @@ export function PhoneField({ value, onChange, error, autoComplete = "tel" }: Pho
         </p>
       ) : (
         <p id={`${id}-hint`} className="field__hint">
-          Код страны 375, оператор{" "}
-          {OPERATOR_CODES.map((code, index) => (
-            <span key={code}>
-              <strong className={operator === code ? "is-active" : undefined}>{code}</strong>
-              {index < OPERATOR_CODES.length - 1 ? ", " : ""}
-            </span>
-          ))}
-          , затем 7 цифр номера
+          +375, затем оператор {OPERATOR_CODES.join(", ")} и 7 цифр номера
         </p>
       )}
     </div>
