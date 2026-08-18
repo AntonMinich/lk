@@ -14,6 +14,7 @@ import {
   type PartnerDocument,
   type PartnerDocumentKey,
 } from "../lib/partner-docs";
+import { savePartnerFiles } from "../lib/partner-files";
 import { validatePartnerPhone } from "../lib/phone";
 
 const AGREEMENT_HREF = brandAsset("docs/dogovor-o-sotrudnichestve.html");
@@ -115,6 +116,13 @@ export function RegisterPage() {
       email: emailResult.value,
       documents,
     });
+    if (result.ok) {
+      try {
+        await savePartnerFiles({ phone: phoneResult.canonical, files });
+      } catch {
+        // заявка сохранена; файл мог не попасть в локальное хранилище
+      }
+    }
     setPending(false);
 
     if (!result.ok) {
@@ -143,7 +151,7 @@ export function RegisterPage() {
           <h1>Регистрация партнера</h1>
           <p className="register-lead">Заполните информацию и приложите обязательные документы.</p>
           <form className="register-form" onSubmit={handleSubmit} noValidate>
-            <section className="register-section register-section--docs">
+            <section className="register-section">
               <h2>1. Скачайте, ознакомьтесь и подпишите документы:</h2>
               <a
                 className="register-download"
