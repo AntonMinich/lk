@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "../components/ui/PageHeader";
 import { useAuth } from "../lib/auth";
@@ -27,11 +28,15 @@ type NotificationsPageProps = {
   partnerId?: string;
 };
 
+type NoticeTab = "unread" | "read";
+
 export function NotificationsPage({ audience, partnerId }: NotificationsPageProps) {
   const { items, unread } = useNotifications({ audience, partnerId });
   const navigate = useNavigate();
+  const [tab, setTab] = useState<NoticeTab>("unread");
   const fresh = items.filter((item) => !item.read);
   const seen = items.filter((item) => item.read);
+  const visible = tab === "unread" ? fresh : seen;
 
   function openItem(item: AppNotification) {
     markNotificationRead(item.id);
@@ -54,80 +59,70 @@ export function NotificationsPage({ audience, partnerId }: NotificationsPageProp
       {items.length === 0 ? (
         <p className="admin-empty">Пока нет уведомлений.</p>
       ) : (
-        <div className="notice-page__groups">
-          <NotificationGroup
-            title="Непросмотренные"
-            empty="Нет непросмотренных уведомлений."
-            items={fresh}
-            onOpen={openItem}
-          />
-          <NotificationGroup
-            title="Прочитанные"
-            empty="Нет прочитанных уведомлений."
-            items={seen}
-            onOpen={openItem}
-          />
-        </div>
-      )}
-    </section>
-  );
-}
-
-function NotificationGroup({
-  title,
-  empty,
-  items,
-  onOpen,
-}: {
-  title: string;
-  empty: string;
-  items: AppNotification[];
-  onOpen: (item: AppNotification) => void;
-}) {
-  return (
-    <section className="notice-group">
-      <h2>
-        {title} <span>{items.length}</span>
-      </h2>
-      {items.length === 0 ? (
-        <p className="admin-empty">{empty}</p>
-      ) : (
-        <div className="history-table-wrap">
-          <table className="history-table">
-            <thead>
-              <tr>
-                <th>Дата</th>
-                <th>Событие</th>
-                <th>Статус</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr
-                  key={item.id}
-                  className={item.read ? "admin-table__row--click" : "admin-table__row--click is-unread"}
-                  tabIndex={0}
-                  onClick={() => onOpen(item)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      onOpen(item);
-                    }
-                  }}
-                >
-                  <td data-label="Дата">
-                    <time dateTime={item.createdAt}>{formatDateTime(item.createdAt)}</time>
-                  </td>
-                  <td data-label="Событие">
-                    <strong>{item.title}</strong>
-                    <span className="notice-page__text">{item.text}</span>
-                  </td>
-                  <td data-label="Статус">{item.read ? "Прочитано" : "Непросмотренное"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <div className="notice-tabs" role="tablist" aria-label="Уведомления">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "unread"}
+              className={tab === "unread" ? "notice-tab is-active" : "notice-tab"}
+              onClick={() => setTab("unread")}
+            >
+              Непросмотренные <span>{fresh.length}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "read"}
+              className={tab === "read" ? "notice-tab is-active" : "notice-tab"}
+              onClick={() => setTab("read")}
+            >
+              Прочитанные <span>{seen.length}</span>
+            </button>
+          </div>
+          {visible.length === 0 ? (
+            <p className="admin-empty">
+              {tab === "unread" ? "Нет непросмотренных уведомлений." : "Нет прочитанных уведомлений."}
+            </p>
+          ) : (
+            <div className="history-table-wrap">
+              <table className="history-table">
+                <thead>
+                  <tr>
+                    <th>Дата</th>
+                    <th>Событие</th>
+                    <th>Статус</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visible.map((item) => (
+                    <tr
+                      key={item.id}
+                      className={item.read ? "admin-table__row--click" : "admin-table__row--click is-unread"}
+                      tabIndex={0}
+                      onClick={() => openItem(item)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          openItem(item);
+                        }
+                      }}
+                    >
+                      <td data-label="Дата">
+                        <time dateTime={item.createdAt}>{formatDateTime(item.createdAt)}</time>
+                      </td>
+                      <td data-label="Событие">
+                        <strong>{item.title}</strong>
+                        <span className="notice-page__text">{item.text}</span>
+                      </td>
+                      <td data-label="Статус">{item.read ? "Прочитано" : "Непросмотренное"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
     </section>
   );

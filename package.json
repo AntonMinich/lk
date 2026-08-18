@@ -15,6 +15,7 @@
     "check:calculator": "node --experimental-strip-types src/lib/calculator.check.ts",
     "check:notifications": "node --experimental-strip-types src/lib/notifications.check.ts",
     "check:status": "node --experimental-strip-types src/lib/status.check.ts",
+    "check:application-no": "node --experimental-strip-types src/lib/application-no.check.ts",
     "check:api": "tsx server/api.check.ts"
   },
   "dependencies": {

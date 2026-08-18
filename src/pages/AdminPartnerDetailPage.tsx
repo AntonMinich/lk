@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useLocation, useParams } from "react-router-dom";
 import { AdminApplicationDetail } from "../components/AdminApplicationDetail";
 import { useAuth } from "../lib/auth";
+import { formatPartnerApplicationNo } from "../lib/application-no";
 import { formatDateTime } from "../lib/format";
 import { formatPhoneDisplay } from "../lib/phone";
 import { partnerDocumentLabel } from "../lib/partner-docs";
@@ -107,6 +108,7 @@ export function AdminPartnerDetailPage() {
       onBlock={() => void changeStatus("blocked")}
       onChangeManager={(name) => void changeManager(name)}
       fields={[
+        { label: "ID", value: formatPartnerApplicationNo(current.seq) },
         { label: "Наименование юридического лица", value: current.companyName },
         { label: "УНП", value: current.unp },
         { label: "ФИО контактного лица", value: current.contactName },
