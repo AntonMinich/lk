@@ -1,10 +1,11 @@
 import { Link, Navigate, useParams } from "react-router-dom";
 import { PageHeader } from "../components/ui/PageHeader";
 import { useAuth } from "../lib/auth";
+import { formatLeasingApplicationNo } from "../lib/application-no";
 import { formatDateTime } from "../lib/format";
 import { getLocalLeasing } from "../lib/leasing";
 import { formatPhoneDisplay } from "../lib/phone";
-import { STATUS_LABEL } from "../lib/status";
+import { LEASING_STATUS_LABEL } from "../lib/leasing-status";
 
 export function CabinetApplicationDetailPage() {
   const { id } = useParams();
@@ -27,6 +28,7 @@ export function CabinetApplicationDetailPage() {
   }
 
   const fields = [
+    { label: "Номер", value: formatLeasingApplicationNo(application.seq, application.createdAt) },
     { label: "Организация", value: application.companyName },
     { label: "Контактное лицо", value: application.contactName },
     { label: "Телефон", value: formatPhoneDisplay(application.phone) },
@@ -34,7 +36,7 @@ export function CabinetApplicationDetailPage() {
     { label: "Сумма", value: application.amount },
     { label: "Срок, мес.", value: application.termMonths },
     { label: "Дата заявки", value: formatDateTime(application.createdAt) },
-    { label: "Статус", value: STATUS_LABEL[application.status] },
+    { label: "Статус", value: LEASING_STATUS_LABEL[application.status] },
     { label: "Менеджер", value: application.responsibleManager || "Не назначен" },
   ];
 

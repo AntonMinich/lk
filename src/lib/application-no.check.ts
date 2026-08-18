@@ -1,4 +1,4 @@
-import { formatPartnerApplicationNo, nextApplicationSeq, fillApplicationSeq } from "./application-no.ts";
+import { formatPartnerApplicationNo, formatLeasingApplicationNo, nextApplicationSeq, fillApplicationSeq } from "./application-no.ts";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
   if (actual !== expected) {
@@ -9,6 +9,8 @@ function assertEqual(actual: unknown, expected: unknown, label: string) {
 assertEqual(formatPartnerApplicationNo(1), "P-001", "first");
 assertEqual(formatPartnerApplicationNo(12), "P-012", "twelve");
 assertEqual(formatPartnerApplicationNo(0), "—", "empty");
+assertEqual(formatLeasingApplicationNo(44, "2026-08-16T00:00:00.000Z"), "LA-2026-000044", "leasing id");
+assertEqual(formatLeasingApplicationNo(0), "—", "leasing empty");
 assertEqual(nextApplicationSeq([]), 1, "empty next");
 assertEqual(nextApplicationSeq([{ seq: 3 }, { seq: 1 }]), 4, "max plus one");
 

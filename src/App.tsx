@@ -36,9 +36,13 @@ export default function App() {
           <Route path="/admin/partners" element={<AdminPartnerListPage />} />
           <Route path="/admin/partners/:id" element={<AdminPartnerDetailPage />} />
           <Route path="/admin/partners/:id/history" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/partners/:id/archive" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/partners/:id/comments" element={<AdminPartnerDetailPage />} />
           <Route path="/admin/directory" element={<AdminPartnerDirectoryPage />} />
           <Route path="/admin/directory/:id" element={<AdminPartnerDetailPage />} />
           <Route path="/admin/directory/:id/history" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/directory/:id/archive" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/directory/:id/comments" element={<AdminPartnerDetailPage />} />
           <Route path="/admin/leasing" element={<AdminLeasingListPage />} />
           <Route path="/admin/leasing/:id" element={<AdminLeasingDetailPage />} />
           <Route path="/admin/leasing/:id/history" element={<AdminLeasingDetailPage />} />

@@ -6,6 +6,16 @@ export function formatPartnerApplicationNo(seq: number): string {
   return `P-${String(n).padStart(3, "0")}`;
 }
 
+export function formatLeasingApplicationNo(seq: number, createdAt?: string): string {
+  const n = Math.max(0, Math.floor(Number(seq) || 0));
+  if (!n) {
+    return "—";
+  }
+  const parsed = createdAt ? new Date(createdAt).getFullYear() : 2026;
+  const year = Number.isFinite(parsed) && parsed >= 2000 ? parsed : 2026;
+  return `LA-${year}-${String(n).padStart(6, "0")}`;
+}
+
 export function nextApplicationSeq(items: { seq?: number }[]): number {
   return items.reduce((acc, item) => Math.max(acc, Number(item.seq) || 0), 0) + 1;
 }
