@@ -5,6 +5,7 @@ import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { validatePartnerPhone } from "../shared/phone.ts";
 import { PartnerStore, toPublicPartner, type PublicPartner } from "./store.ts";
+import { proxyToVite } from "./vite-proxy.ts";
 
 const SESSION_COOKIE = "lk_session";
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -18,6 +19,7 @@ export type CreateAppOptions = {
   partnersPath: string;
   imageDir: string;
   distDir?: string;
+  viteOrigin?: string;
 };
 
 export function createApp(options: CreateAppOptions) {
@@ -63,6 +65,14 @@ export function createApp(options: CreateAppOptions) {
 
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true });
+  });
+
+  app.get("/", (_req, res, next) => {
+    if (options.distDir || options.viteOrigin) {
+      next();
+      return;
+    }
+    res.json({ ok: true, service: "lk-api", health: "/api/health" });
   });
 
   app.post("/api/register", async (req, res) => {
@@ -158,6 +168,8 @@ export function createApp(options: CreateAppOptions) {
     app.get("*", (_req, res) => {
       res.sendFile(path.join(options.distDir!, "index.html"));
     });
+  } else if (options.viteOrigin) {
+    app.use(proxyToVite(options.viteOrigin));
   }
 
   return app;

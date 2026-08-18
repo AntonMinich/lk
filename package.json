@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "concurrently -k -n server,web -c blue,green \"npm run dev:server\" \"npm run dev:client\"",
     "dev:client": "vite",
-    "dev:server": "SERVE_FRONTEND=0 tsx watch server/index.ts",
+    "dev:server": "VITE_ORIGIN=http://127.0.0.1:5173 tsx watch server/index.ts",
     "start": "tsx server/index.ts",
     "build": "tsc -b && tsc -p tsconfig.server.json && vite build",
+    "build:pages": "VITE_BASE=/lk/ vite build --outDir docs --emptyOutDir && cp docs/index.html docs/404.html && touch docs/.nojekyll",
     "check:phone": "node --experimental-strip-types src/lib/phone.check.ts",
     "check:api": "tsx server/api.check.ts"
   },

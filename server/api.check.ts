@@ -46,6 +46,14 @@ async function api(pathname: string, options: RequestInit = {}): Promise<ApiResp
 }
 
 try {
+  const health = await api("/api/health");
+  assert.equal(health.status, 200);
+  assert.equal(health.data.ok, true);
+
+  const root = await api("/");
+  assert.equal(root.status, 200);
+  assert.equal(root.data.ok, true);
+
   const unregistered = await api("/api/login", {
     method: "POST",
     body: JSON.stringify({ phone: "+375447574025", password: "test123" }),
