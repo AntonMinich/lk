@@ -11,6 +11,7 @@
     "build": "tsc -b && tsc -p tsconfig.server.json && vite build",
     "build:pages": "VITE_BASE=/lk/ vite build --outDir docs --emptyOutDir && cp docs/index.html docs/404.html && touch docs/.nojekyll",
     "check:phone": "node --experimental-strip-types src/lib/phone.check.ts",
+    "check:calculator": "node --experimental-strip-types src/lib/calculator.check.ts",
     "check:api": "tsx server/api.check.ts"
   },
   "dependencies": {
