@@ -1,6 +1,7 @@
 import { Link, Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import { NotificationBell } from "./NotificationBell";
 import { OsMark } from "./OsMark";
+import { DemoChip } from "./ui/PageHeader";
 import { UserMenu } from "./UserMenu";
 import { useAuth } from "../lib/auth";
 import { formatPhoneDisplay } from "../lib/phone";
@@ -64,6 +65,7 @@ export function CabinetLayout() {
           </Link>
         )}
         <div className="admin-header__tools">
+          <DemoChip />
           <NotificationBell
             audience="partner"
             partnerId={partner.id}

@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { AdminApplicationTable } from "../components/AdminApplicationTable";
+import { PageHeader } from "../components/ui/PageHeader";
 import { useAuth } from "../lib/auth";
 import { formatDateTime } from "../lib/format";
 import { listLocalLeasingByPartner } from "../lib/leasing";
@@ -21,7 +22,7 @@ export function CabinetPage() {
 
   return (
     <section className="admin-page">
-      <h1>Мои заявки</h1>
+      <PageHeader title="Мои заявки" subtitle={`${applications.length} заявок на лизинг`} />
       {created ? (
         <p className="banner banner--ok" role="status">
           Заявка отправлена. Её можно отслеживать в списке ниже.

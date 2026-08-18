@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminApplicationTable } from "../components/AdminApplicationTable";
+import { PageHeader, StatGrid } from "../components/ui/PageHeader";
 import { listLocalLeasing, type LeasingApplication } from "../lib/leasing";
 import { formatDateTime } from "../lib/format";
 import { formatPhoneDisplay } from "../lib/phone";
@@ -16,7 +17,26 @@ export function AdminLeasingListPage() {
 
   return (
     <section className="admin-page">
-      <h1>Заявки на лизинг</h1>
+      <PageHeader title="Заявки на лизинг" subtitle={`${rows.length} заявок в работе системы`} />
+      <StatGrid
+        items={[
+          { label: "Всего", value: rows.length },
+          {
+            label: "На рассмотрении",
+            value: rows.filter((item) => item.status === "pending").length,
+            tone: "warning",
+          },
+          {
+            label: "В работе",
+            value: rows.filter((item) => item.status === "accepted").length,
+          },
+          {
+            label: "Одобрены",
+            value: rows.filter((item) => item.status === "approved").length,
+            tone: "success",
+          },
+        ]}
+      />
       <AdminApplicationTable
         rows={rows}
         empty="Пока нет заявок на лизинг."

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { PhoneField } from "../components/PhoneField";
+import { PageHeader } from "../components/ui/PageHeader";
 import { useAuth } from "../lib/auth";
 import { createLocalLeasing } from "../lib/leasing";
 import { extractLocalDigits, validatePartnerPhone } from "../lib/phone";
@@ -86,8 +87,10 @@ export function NewApplicationPage() {
 
   return (
     <section className="admin-page">
-      <h1>Создать заявку на лизинг</h1>
-      <p className="cabinet__lead">Заполните данные. После отправки заявка появится в списке «Мои заявки».</p>
+      <PageHeader
+        title="Создать заявку на лизинг"
+        subtitle="После отправки заявка появится в списке «Мои заявки»."
+      />
       <form className="auth-form cabinet-form" onSubmit={handleSubmit} noValidate>
         <div className="field">
           <label htmlFor="lease-company">Название организации</label>

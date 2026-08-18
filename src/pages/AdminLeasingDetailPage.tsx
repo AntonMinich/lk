@@ -63,6 +63,10 @@ export function AdminLeasingDetailPage() {
   return (
     <AdminApplicationDetail
       title="Заявка на лизинг"
+      crumbs={[
+        { label: "Заявки на лизинг", to: "/admin/leasing" },
+        { label: current.companyName || "Заявка" },
+      ]}
       status={current.status}
       manager={current.responsibleManager}
       history={current.history}

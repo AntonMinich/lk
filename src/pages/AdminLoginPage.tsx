@@ -55,8 +55,8 @@ export function AdminLoginPage() {
         </p>
       }
     >
-      <p className="banner banner--ok" role="note">
-        Демо:{" "}
+      <p className="banner banner--demo" role="note">
+        Демо-доступ:{" "}
         {ADMIN_ACCOUNTS.map((item, index) => (
           <span key={item.login}>
             {index > 0 ? "; " : null}

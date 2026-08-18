@@ -12,6 +12,7 @@ export type AdminFormField = {
 
 type AdminApplicationDetailProps = {
   title: string;
+  crumbs?: { label: string; to?: string }[];
   fields: AdminFormField[];
   status: ApplicationStatus;
   manager: string;
@@ -41,6 +42,7 @@ const MANAGERS = adminLogins();
 
 export function AdminApplicationDetail({
   title,
+  crumbs,
   fields,
   status,
   manager,
@@ -106,6 +108,22 @@ export function AdminApplicationDetail({
   return (
     <div className="admin-detail">
       <section className="admin-detail__form">
+        {crumbs && crumbs.length > 0 ? (
+          <nav className="breadcrumbs">
+            {crumbs.map((item, index) => (
+              <span key={`${item.label}-${index}`}>
+                {index > 0 ? <span className="breadcrumbs__sep">/</span> : null}
+                {item.to ? (
+                  <Link to={item.to} className="breadcrumbs__link">
+                    {item.label}
+                  </Link>
+                ) : (
+                  <span>{item.label}</span>
+                )}
+              </span>
+            ))}
+          </nav>
+        ) : null}
         <h1>{showHistory ? "История" : title}</h1>
         {error ? (
           <p className="field__error" role="alert">

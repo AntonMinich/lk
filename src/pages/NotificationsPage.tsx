@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "../components/ui/PageHeader";
 import { useAuth } from "../lib/auth";
 import { formatDateTime } from "../lib/format";
 import {
@@ -31,18 +32,17 @@ export function NotificationsPage({ audience, partnerId }: NotificationsPageProp
 
   return (
     <section className="admin-page">
-      <div className="notice-page__bar">
-        <h1>Уведомления</h1>
-        {unread > 0 ? (
-          <button
-            type="button"
-            className="ghost-btn"
-            onClick={() => markNotificationsRead({ audience, partnerId })}
-          >
-            Прочитать все
-          </button>
-        ) : null}
-      </div>
+      <PageHeader
+        title="Уведомления"
+        subtitle={unread > 0 ? `${unread} непрочитанных` : "Все уведомления прочитаны"}
+        actions={
+          unread > 0 ? (
+            <button type="button" className="ghost-btn" onClick={() => markNotificationsRead({ audience, partnerId })}>
+              Прочитать все
+            </button>
+          ) : null
+        }
+      />
       {items.length === 0 ? (
         <p className="admin-empty">Пока нет уведомлений.</p>
       ) : (

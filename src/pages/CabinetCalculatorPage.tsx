@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "../components/ui/PageHeader";
 import { calculateLease, formatMoney, parseAmount } from "../lib/calculator";
 
 export function CabinetCalculatorPage() {
@@ -32,10 +33,10 @@ export function CabinetCalculatorPage() {
 
   return (
     <section className="admin-page">
-      <h1>Калькулятор</h1>
-      <p className="cabinet__lead">
-        Предварительный аннуитетный расчёт. Не является офертой и договором лизинга.
-      </p>
+      <PageHeader
+        title="Калькулятор"
+        subtitle="Предварительный аннуитетный расчёт. Не является офертой и договором лизинга."
+      />
       <div className="calculator">
         <form className="auth-form calculator__form" onSubmit={(event) => event.preventDefault()}>
           <div className="field">
