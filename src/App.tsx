@@ -6,8 +6,10 @@ import { AdminLeasingListPage } from "./pages/AdminLeasingListPage";
 import { AdminLoginPage } from "./pages/AdminLoginPage";
 import { AdminPartnerDetailPage } from "./pages/AdminPartnerDetailPage";
 import { AdminPartnerListPage } from "./pages/AdminPartnerListPage";
+import { AdminProfilePage } from "./pages/AdminProfilePage";
 import { CabinetPage } from "./pages/CabinetPage";
 import { LoginPage } from "./pages/LoginPage";
+import { NewApplicationPage } from "./pages/NewApplicationPage";
 import { RegisterPage } from "./pages/RegisterPage";
 
 export default function App() {
@@ -17,6 +19,7 @@ export default function App() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/cabinet" element={<CabinetPage />} />
+        <Route path="/cabinet/applications/new" element={<NewApplicationPage />} />
         <Route path="/admin" element={<AdminLoginPage />} />
         <Route element={<AdminGate />}>
           <Route path="/admin/partners" element={<AdminPartnerListPage />} />
@@ -25,6 +28,7 @@ export default function App() {
           <Route path="/admin/leasing" element={<AdminLeasingListPage />} />
           <Route path="/admin/leasing/:id" element={<AdminLeasingDetailPage />} />
           <Route path="/admin/leasing/:id/history" element={<AdminLeasingDetailPage />} />
+          <Route path="/admin/profile" element={<AdminProfilePage />} />
         </Route>
         <Route path="/admin/applications" element={<Navigate to="/admin/partners" replace />} />
         <Route path="/partners" element={<Navigate to="/admin/partners" replace />} />

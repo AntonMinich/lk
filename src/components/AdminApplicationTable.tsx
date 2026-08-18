@@ -10,7 +10,7 @@ type AdminApplicationTableProps<T extends { id: string }> = {
   columns: AdminTableColumn<T>[];
   rows: T[];
   empty: string;
-  onRowClick: (item: T) => void;
+  onRowClick?: (item: T) => void;
 };
 
 export function AdminApplicationTable<T extends { id: string }>({
@@ -36,14 +36,19 @@ export function AdminApplicationTable<T extends { id: string }>({
         {rows.map((item) => (
           <tr
             key={item.id}
-            tabIndex={0}
-            onClick={() => onRowClick(item)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                onRowClick(item);
-              }
-            }}
+            className={onRowClick ? "admin-table__row--click" : undefined}
+            tabIndex={onRowClick ? 0 : undefined}
+            onClick={onRowClick ? () => onRowClick(item) : undefined}
+            onKeyDown={
+              onRowClick
+                ? (event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onRowClick(item);
+                    }
+                  }
+                : undefined
+            }
           >
             {columns.map((column) => (
               <td key={column.key} data-label={column.label}>

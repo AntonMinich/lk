@@ -1,5 +1,6 @@
 import { Navigate, NavLink, Outlet } from "react-router-dom";
 import { BrandMark } from "./BrandMark";
+import { UserMenu } from "./UserMenu";
 import { useAuth } from "../lib/auth";
 
 const NAV = [
@@ -22,7 +23,7 @@ export function AdminGate() {
 }
 
 export function AdminLayout() {
-  const { logoutAdmin } = useAuth();
+  const { adminName, logoutAdmin } = useAuth();
 
   return (
     <div className="admin-shell">
@@ -44,10 +45,17 @@ export function AdminLayout() {
             </NavLink>
           ))}
         </nav>
-        <button type="button" className="ghost-btn admin-sidebar__logout" onClick={() => void logoutAdmin()}>
-          Выйти
-        </button>
       </aside>
+      <header className="admin-header">
+        <UserMenu
+          name={adminName || "admin"}
+          role="Сотрудник"
+          items={[
+            { label: "Мой профиль", to: "/admin/profile" },
+            { label: "Выйти", danger: true, onClick: () => void logoutAdmin() },
+          ]}
+        />
+      </header>
       <div className="admin-content">
         <Outlet />
       </div>
