@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminApplicationTable } from "../components/AdminApplicationTable";
+import { PageHeader, StatGrid } from "../components/ui/PageHeader";
 import { useAuth } from "../lib/auth";
 import { formatDateTime } from "../lib/format";
 import { formatPhoneDisplay } from "../lib/phone";
@@ -37,7 +38,29 @@ export function AdminPartnerListPage() {
 
   return (
     <section className="admin-page">
-      <h1>Заявки на регистрацию партнера</h1>
+      <PageHeader
+        title="Заявки на регистрацию партнера"
+        subtitle={`${partners.length} заявок в очереди`}
+      />
+      <StatGrid
+        items={[
+          { label: "Всего", value: partners.length },
+          {
+            label: "На рассмотрении",
+            value: partners.filter((item) => item.status === "pending").length,
+            tone: "warning",
+          },
+          {
+            label: "В работе",
+            value: partners.filter((item) => item.status === "accepted").length,
+          },
+          {
+            label: "Активны",
+            value: partners.filter((item) => item.status === "approved").length,
+            tone: "success",
+          },
+        ]}
+      />
       {error ? <p className="field__error">{error}</p> : null}
       <AdminApplicationTable
         rows={partners}

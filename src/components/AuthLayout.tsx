@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import type { ReactNode } from "react";
-import { BrandMark } from "./BrandMark";
+import { DemoChip } from "./ui/PageHeader";
+import { OsMark } from "./OsMark";
 
 type AuthLayoutProps = {
   title: string;
@@ -21,10 +22,12 @@ export function AuthLayout({
     <div className="auth-shell">
       <main className="auth-main">
         <div className="auth-card">
-          <Link to="/" className="logo logo--wordmark auth-card__logo">
-            <BrandMark />
-          </Link>
-          <p className="auth-brand__kicker">{kicker}</p>
+          <div className="auth-card__top">
+            <Link to="/" className="os-mark-link">
+              <OsMark subtitle={kicker} />
+            </Link>
+            <DemoChip />
+          </div>
           <h1>{title}</h1>
           <p className="auth-card__subtitle">{subtitle}</p>
           {children}

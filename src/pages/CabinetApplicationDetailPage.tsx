@@ -1,4 +1,5 @@
 import { Link, Navigate, useParams } from "react-router-dom";
+import { PageHeader } from "../components/ui/PageHeader";
 import { useAuth } from "../lib/auth";
 import { formatDateTime } from "../lib/format";
 import { getLocalLeasing } from "../lib/leasing";
@@ -39,17 +40,24 @@ export function CabinetApplicationDetailPage() {
 
   return (
     <section className="admin-page">
-      <Link to="/cabinet/applications" className="cabinet-back">
-        К списку заявок
-      </Link>
-      <h1>Заявка на лизинг</h1>
-      <div className="admin-form-grid">
-        {fields.map((field) => (
-          <div className="field" key={field.label}>
-            <label>{field.label}</label>
-            <input type="text" readOnly value={field.value || "—"} />
-          </div>
-        ))}
+      <PageHeader
+        title="Заявка на лизинг"
+        subtitle={application.asset || application.companyName}
+        actions={
+          <Link to="/cabinet/applications" className="secondary-btn">
+            К списку заявок
+          </Link>
+        }
+      />
+      <div className="panel">
+        <div className="admin-form-grid">
+          {fields.map((field) => (
+            <div className="field" key={field.label}>
+              <label>{field.label}</label>
+              <input type="text" readOnly value={field.value || "—"} />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

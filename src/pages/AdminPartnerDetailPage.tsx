@@ -83,6 +83,10 @@ export function AdminPartnerDetailPage() {
   return (
     <AdminApplicationDetail
       title="Заявка на регистрацию партнера"
+      crumbs={[
+        { label: "Заявки на регистрацию", to: "/admin/partners" },
+        { label: current.companyName || "Заявка" },
+      ]}
       status={current.status}
       manager={current.responsibleManager}
       history={current.history}

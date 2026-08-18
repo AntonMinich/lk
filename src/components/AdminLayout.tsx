@@ -1,6 +1,7 @@
 import { Navigate, NavLink, Outlet } from "react-router-dom";
 import { NotificationBell } from "./NotificationBell";
 import { OsMark } from "./OsMark";
+import { DemoChip } from "./ui/PageHeader";
 import { UserMenu } from "./UserMenu";
 import { useAuth } from "../lib/auth";
 
@@ -53,6 +54,7 @@ export function AdminLayout() {
           <span>Админка</span>
         </div>
         <div className="admin-header__tools">
+          <DemoChip />
           <NotificationBell audience="admin" allHref="/admin/notifications" />
           <UserMenu
             name={adminName || "admin"}
