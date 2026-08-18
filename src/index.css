@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap");
 
 :root {
   --blue: #101954;
@@ -7,16 +7,16 @@
   --white: #ffffff;
   --black: #000000;
   --navy: var(--blue);
-  --paper: #070b24;
+  --paper: #eef1f7;
   --card: var(--white);
   --ink: var(--blue);
-  --muted: #5c6490;
-  --line: #d8dcec;
+  --muted: #66708f;
+  --line: #e2e6f0;
   --danger: #e23b4a;
   --ok: var(--green);
   --ok-bg: #e7fff6;
-  --shadow: 0 24px 60px rgba(16, 25, 84, 0.18);
-  --radius: 18px;
+  --shadow: 0 12px 40px rgba(16, 25, 84, 0.08);
+  --radius: 20px;
 }
 
 *,
@@ -34,8 +34,8 @@ body,
 body {
   margin: 0;
   color: var(--ink);
-  background: var(--black);
-  font-family: Manrope, "Segoe UI", sans-serif;
+  background: var(--paper);
+  font-family: "Golos Text", Manrope, "Segoe UI", sans-serif;
   font-size: 16px;
   line-height: 1.5;
 }
@@ -44,7 +44,7 @@ h1,
 h2,
 .logo__text,
 .auth-brand__kicker {
-  font-family: Outfit, Manrope, sans-serif;
+  font-family: "Golos Text", Manrope, sans-serif;
 }
 
 h1,
@@ -84,10 +84,9 @@ input {
   overflow: hidden;
   color: var(--white);
   background:
-    radial-gradient(900px 420px at 110% 120%, rgba(1, 246, 155, 0.22), transparent 58%),
-    radial-gradient(700px 400px at -20% -10%, rgba(1, 246, 155, 0.08), transparent 50%),
-    linear-gradient(165deg, var(--blue) 0%, #0a1038 58%, var(--black) 100%);
-  padding: 36px 48px 48px;
+    radial-gradient(900px 420px at 110% 120%, rgba(1, 246, 155, 0.2), transparent 58%),
+    linear-gradient(165deg, #18236a 0%, var(--blue) 62%, #0c133d 100%);
+  padding: 40px 48px 48px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -163,24 +162,34 @@ input {
   align-items: center;
 }
 
+.logo-plate {
+  display: inline-flex;
+  align-items: center;
+  background: var(--white);
+  border-radius: 18px;
+  padding: 14px 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+}
+
 .logo__image {
   display: block;
-  height: 52px;
+  height: 64px;
   width: auto;
-  max-width: 240px;
+  max-width: 280px;
   object-fit: contain;
   background: transparent;
 }
 
+.logo-plate .logo__image,
 .auth-brand .logo__image {
-  height: 72px;
-  max-width: 320px;
+  height: 76px;
+  max-width: 340px;
 }
 
 .logo__text {
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--blue);
 }
 
 .logo__slogan {
@@ -197,25 +206,24 @@ input {
 }
 
 .logo--mobile .logo__image {
-  height: 48px;
+  height: 56px;
+  max-width: 240px;
 }
 
 .auth-main {
   display: grid;
   place-items: center;
-  padding: 32px 20px;
-  background:
-    radial-gradient(700px 280px at 80% -10%, rgba(1, 246, 155, 0.08), transparent 50%),
-    var(--paper);
+  padding: 40px 24px;
+  background: var(--paper);
 }
 
 .auth-card {
-  width: min(100%, 440px);
+  width: min(100%, 460px);
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: 24px;
   box-shadow: var(--shadow);
-  padding: 36px 32px 32px;
+  padding: 40px 36px 32px;
 }
 
 .auth-card__subtitle,
@@ -243,10 +251,10 @@ input {
 .phone-input,
 .password-input {
   width: 100%;
-  min-height: 52px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--white);
+  min-height: 54px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: #f4f6fb;
 }
 
 .field input {
@@ -262,8 +270,9 @@ input {
 .field input:focus,
 .phone-input:focus-within,
 .password-input:focus-within {
-  border-color: var(--mint);
-  box-shadow: 0 0 0 4px rgba(1, 246, 155, 0.18);
+  border-color: var(--blue);
+  background: var(--white);
+  box-shadow: 0 0 0 4px rgba(16, 25, 84, 0.08);
 }
 
 .field--invalid input,
@@ -403,17 +412,17 @@ input {
 
 .primary-btn {
   margin-top: 8px;
-  min-height: 52px;
+  min-height: 54px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--mint);
   color: var(--blue);
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 }
 
 .primary-btn:hover {
-  filter: brightness(1.06);
+  filter: brightness(1.04);
 }
 
 .primary-btn:disabled {
@@ -425,17 +434,17 @@ input {
 .secondary-btn {
   display: grid;
   place-items: center;
-  min-height: 52px;
-  border: 1px solid var(--blue);
-  border-radius: 12px;
-  background: transparent;
+  min-height: 54px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
   color: var(--blue);
   font-weight: 700;
   text-decoration: none;
 }
 
 .secondary-btn:hover {
-  background: rgba(16, 25, 84, 0.05);
+  background: #f4f6fb;
 }
 
 .link-button {
@@ -467,9 +476,62 @@ input {
   color: var(--green);
 }
 
+.banner--warn {
+  background: #fff6e8;
+  color: #8a5a12;
+}
+
+.text-link {
+  display: block;
+  margin-top: 4px;
+  text-align: center;
+  color: var(--blue);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.text-link:hover {
+  color: var(--green);
+}
+
+.table-wrap {
+  overflow: auto;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.partners-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.partners-table th,
+.partners-table td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.partners-table th {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.partners-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.cabinet__main--wide {
+  max-width: 960px;
+}
+
 .cabinet {
   min-height: 100vh;
-  background: #f4f6fb;
+  background: var(--paper);
 }
 
 .cabinet__bar {
@@ -477,25 +539,30 @@ input {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  padding: 16px 28px;
-  background: var(--blue);
-  color: var(--white);
+  padding: 14px 28px;
+  background: var(--white);
+  color: var(--blue);
+  border-bottom: 1px solid var(--line);
 }
 
 .cabinet__bar .logo__image {
-  height: 40px;
-  max-width: 180px;
+  height: 48px;
+  max-width: 220px;
 }
 
 .cabinet__user {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--muted);
+}
+
+.cabinet__bar .ghost-btn {
+  color: var(--blue);
 }
 
 .cabinet__user .ghost-btn {
-  color: var(--mint);
+  color: var(--blue);
 }
 
 .cabinet__main {
@@ -521,7 +588,7 @@ input {
   }
 
   .auth-main {
-    background: #f4f6fb;
+    background: var(--paper);
   }
 
   .auth-card {
