@@ -1,20 +1,29 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
+  adminLoginRequest,
+  adminLogoutRequest,
+  adminMeRequest,
   getMe,
   isApiOnline,
   listPartnersRequest,
   loginRequest,
   logoutRequest,
   registerRequest,
+  setPartnerStatusRequest,
   type PublicPartner,
 } from "./api";
 import {
+  clearLocalAdmin,
   clearLocalSession,
+  isLocalAdmin,
   listLocalPartners,
+  loginLocalAdmin,
   loginLocalPartner,
   readLocalSession,
   registerLocalPartner,
+  setLocalPartnerStatus,
 } from "./local-partners";
+import type { ApplicationStatus } from "./status";
 
 type AuthResult = { ok: true } | { ok: false; message: string };
 
@@ -22,6 +31,7 @@ type AuthContextValue = {
   ready: boolean;
   apiOnline: boolean;
   partner: PublicPartner | null;
+  admin: boolean;
   login: (phone: string, password: string) => Promise<AuthResult>;
   register: (input: {
     phone: string;
@@ -30,7 +40,10 @@ type AuthContextValue = {
     contactName: string;
   }) => Promise<AuthResult>;
   logout: () => Promise<void>;
+  loginAdmin: (login: string, password: string) => Promise<AuthResult>;
+  logoutAdmin: () => Promise<void>;
   listPartners: () => Promise<PublicPartner[]>;
+  setPartnerStatus: (id: string, status: ApplicationStatus) => Promise<AuthResult>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -39,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [apiOnline, setApiOnline] = useState(false);
   const [partner, setPartner] = useState<PublicPartner | null>(null);
+  const [admin, setAdmin] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,8 +73,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setPartner(null);
           }
         }
+        try {
+          await adminMeRequest();
+          if (!cancelled) {
+            setAdmin(true);
+          }
+        } catch {
+          if (!cancelled) {
+            setAdmin(false);
+          }
+        }
       } else if (!cancelled) {
         setPartner(readLocalSession());
+        setAdmin(isLocalAdmin());
       }
       if (!cancelled) {
         setReady(true);
@@ -76,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ready,
       apiOnline,
       partner,
+      admin,
       login: async (phone, password) => {
         if (apiOnline) {
           try {
@@ -119,6 +145,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clearLocalSession();
         setPartner(null);
       },
+      loginAdmin: async (login, password) => {
+        if (apiOnline) {
+          try {
+            await adminLoginRequest(login, password);
+            setAdmin(true);
+            return { ok: true };
+          } catch (error) {
+            return {
+              ok: false,
+              message: error instanceof Error ? error.message : "Ошибка входа в админку",
+            };
+          }
+        }
+        const result = loginLocalAdmin(login, password);
+        if (result.ok) {
+          setAdmin(true);
+        }
+        return result;
+      },
+      logoutAdmin: async () => {
+        if (apiOnline) {
+          try {
+            await adminLogoutRequest();
+          } finally {
+            setAdmin(false);
+          }
+          return;
+        }
+        clearLocalAdmin();
+        setAdmin(false);
+      },
       listPartners: async () => {
         if (apiOnline) {
           const data = await listPartnersRequest();
@@ -126,8 +183,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         return listLocalPartners();
       },
+      setPartnerStatus: async (id, status) => {
+        if (apiOnline) {
+          try {
+            await setPartnerStatusRequest(id, status);
+            return { ok: true };
+          } catch (error) {
+            return {
+              ok: false,
+              message: error instanceof Error ? error.message : "Не удалось обновить статус",
+            };
+          }
+        }
+        const updated = setLocalPartnerStatus(id, status);
+        if (!updated) {
+          return { ok: false, message: "Заявка не найдена" };
+        }
+        return { ok: true };
+      },
     }),
-    [apiOnline, partner, ready],
+    [admin, apiOnline, partner, ready],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

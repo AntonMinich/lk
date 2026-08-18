@@ -7,9 +7,9 @@ export function ServerStatusBanner() {
   if (apiOnline) {
     return (
       <p className="banner banner--ok" role="status">
-        Сервер API онлайн. Заявки смотрите в{" "}
-        <Link to="/partners" className="link-button">
-          списке партнёров
+        Сервер API онлайн. Заявки партнёров одобряются в{" "}
+        <Link to="/admin" className="link-button">
+          админке
         </Link>
         .
       </p>
@@ -18,10 +18,11 @@ export function ServerStatusBanner() {
 
   return (
     <p className="banner banner--warn" role="status">
-      Сервер API недоступен (GitHub Pages или нет бэкенда). Заявки сохраняются в этом браузере.{" "}
-      <Link to="/partners" className="link-button">
-        Открыть список
-      </Link>
+      Сервер API недоступен (GitHub Pages). Заявка сохранится в этом браузере. Одобрить её можно в{" "}
+      <Link to="/admin" className="link-button">
+        админке
+      </Link>{" "}
+      — тоже в этом же браузере.
     </p>
   );
 }

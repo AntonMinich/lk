@@ -3,15 +3,26 @@ import express, { type Request, type Response } from "express";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
+import { ADMIN_DEMO } from "../shared/admin.ts";
 import { validatePartnerPhone } from "../shared/phone.ts";
+import {
+  isApplicationStatus,
+  loginBlockedMessage,
+  normalizeStatus,
+} from "../shared/status.ts";
 import { PartnerStore, toPublicPartner, type PublicPartner } from "./store.ts";
 import { proxyToVite } from "./vite-proxy.ts";
 
 const SESSION_COOKIE = "lk_session";
+const ADMIN_COOKIE = "lk_admin_session";
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 type Session = {
   partnerId: string;
+  expiresAt: number;
+};
+
+type AdminSession = {
   expiresAt: number;
 };
 
@@ -25,6 +36,7 @@ export type CreateAppOptions = {
 export function createApp(options: CreateAppOptions) {
   const store = new PartnerStore(options.partnersPath);
   const sessions = new Map<string, Session>();
+  const adminSessions = new Map<string, AdminSession>();
   const app = express();
 
   app.use(express.json({ limit: "32kb" }));
@@ -44,10 +56,34 @@ export function createApp(options: CreateAppOptions) {
     return session;
   }
 
+  function readAdminSession(req: Request): AdminSession | null {
+    const token = req.cookies?.[ADMIN_COOKIE];
+    if (!token || typeof token !== "string") {
+      return null;
+    }
+    const session = adminSessions.get(token);
+    if (!session || session.expiresAt < Date.now()) {
+      adminSessions.delete(token);
+      return null;
+    }
+    return session;
+  }
+
   function setSession(res: Response, partnerId: string) {
     const token = randomBytes(24).toString("hex");
     sessions.set(token, { partnerId, expiresAt: Date.now() + SESSION_TTL_MS });
     res.cookie(SESSION_COOKIE, token, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: SESSION_TTL_MS,
+    });
+  }
+
+  function setAdminSession(res: Response) {
+    const token = randomBytes(24).toString("hex");
+    adminSessions.set(token, { expiresAt: Date.now() + SESSION_TTL_MS });
+    res.cookie(ADMIN_COOKIE, token, {
       httpOnly: true,
       sameSite: "lax",
       path: "/",
@@ -61,6 +97,22 @@ export function createApp(options: CreateAppOptions) {
       sessions.delete(token);
     }
     res.clearCookie(SESSION_COOKIE, { path: "/" });
+  }
+
+  function clearAdminSession(req: Request, res: Response) {
+    const token = req.cookies?.[ADMIN_COOKIE];
+    if (token) {
+      adminSessions.delete(token);
+    }
+    res.clearCookie(ADMIN_COOKIE, { path: "/" });
+  }
+
+  function requireAdmin(req: Request, res: Response): boolean {
+    if (readAdminSession(req)) {
+      return true;
+    }
+    res.status(401).json({ message: "Нужна авторизация администратора" });
+    return false;
   }
 
   app.get("/api/health", (_req, res) => {
@@ -136,6 +188,12 @@ export function createApp(options: CreateAppOptions) {
       return;
     }
 
+    const blocked = loginBlockedMessage(normalizeStatus(partner.status));
+    if (blocked) {
+      res.status(403).json({ message: blocked });
+      return;
+    }
+
     setSession(res, partner.id);
     res.json({ partner: toPublicPartner(partner) });
   });
@@ -145,9 +203,55 @@ export function createApp(options: CreateAppOptions) {
     res.json({ ok: true });
   });
 
-  app.get("/api/partners", async (_req, res) => {
+  app.post("/api/admin/login", (req, res) => {
+    const login = String(req.body?.login ?? "").trim();
+    const password = String(req.body?.password ?? "");
+    if (login !== ADMIN_DEMO.login || password !== ADMIN_DEMO.password) {
+      res.status(401).json({ message: "Неверный логин или пароль администратора" });
+      return;
+    }
+    setAdminSession(res);
+    res.json({ ok: true });
+  });
+
+  app.post("/api/admin/logout", (req, res) => {
+    clearAdminSession(req, res);
+    res.json({ ok: true });
+  });
+
+  app.get("/api/admin/me", (req, res) => {
+    if (!requireAdmin(req, res)) {
+      return;
+    }
+    res.json({ ok: true });
+  });
+
+  app.get("/api/partners", async (req, res) => {
+    if (!requireAdmin(req, res)) {
+      return;
+    }
     const partners = await store.list();
     res.json({ partners: partners.map(toPublicPartner) });
+  });
+
+  app.patch("/api/partners/:id/status", async (req, res) => {
+    if (!requireAdmin(req, res)) {
+      return;
+    }
+
+    const status = String(req.body?.status ?? "");
+    if (!isApplicationStatus(status)) {
+      res.status(400).json({ message: "Некорректный статус заявки" });
+      return;
+    }
+
+    const partner = await store.setStatus(req.params.id, status);
+    if (!partner) {
+      res.status(404).json({ message: "Заявка не найдена" });
+      return;
+    }
+
+    res.json({ partner: toPublicPartner(partner) });
   });
 
   app.get("/api/me", async (req, res) => {
@@ -157,9 +261,14 @@ export function createApp(options: CreateAppOptions) {
       return;
     }
 
-    const partners = await store.list();
-    const partner = partners.find((item) => item.id === session.partnerId);
+    const partner = await store.findById(session.partnerId);
     if (!partner) {
+      clearSession(req, res);
+      res.status(401).json({ message: "Нужна авторизация" });
+      return;
+    }
+
+    if (loginBlockedMessage(normalizeStatus(partner.status))) {
       clearSession(req, res);
       res.status(401).json({ message: "Нужна авторизация" });
       return;

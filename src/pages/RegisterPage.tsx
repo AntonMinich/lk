@@ -83,7 +83,7 @@ export function RegisterPage() {
   return (
     <AuthLayout
       title="Регистрация партнёра"
-      subtitle="Оставьте данные организации. После регистрации можно войти в кабинет."
+      subtitle="Отправьте заявку. Войти в кабинет можно после одобрения в админке."
       footer={
         <p className="auth-alt">
           Уже есть доступ?{" "}
