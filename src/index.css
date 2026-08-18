@@ -299,26 +299,38 @@ input {
 
 .phone-input__mask {
   position: absolute;
-  inset: 0 14px 0 8px;
+  inset: 0 14px 0 6px;
   display: flex;
   align-items: center;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06em;
-  font-weight: 700;
+  white-space: pre;
+  font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Menlo, monospace;
+  font-size: 1.02rem;
+  letter-spacing: 0.02em;
   pointer-events: none;
 }
 
+.phone-input__slot {
+  display: inline-flex;
+  align-items: center;
+}
+
+.phone-input__punct {
+  color: #8a8278;
+}
+
+.phone-input__space {
+  width: 0.55em;
+  flex: 0 0 0.55em;
+}
+
 .phone-input__x {
-  color: #c5beb3;
+  color: #9a9388;
+  font-weight: 600;
 }
 
 .phone-input__digit {
   color: var(--ink);
-}
-
-.phone-input__sep {
-  color: #c5beb3;
-  letter-spacing: 0.02em;
+  font-weight: 800;
 }
 
 .phone-input__caret {

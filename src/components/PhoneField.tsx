@@ -1,5 +1,5 @@
-import { useId, useState, type ChangeEvent, Fragment } from "react";
-import { extractLocalDigits, OPERATOR_CODES, PHONE_MASK_SLOTS } from "../lib/phone";
+import { useId, useState, type ChangeEvent } from "react";
+import { extractLocalDigits, LOCAL_LENGTH, OPERATOR_CODES } from "../lib/phone";
 
 type PhoneFieldProps = {
   label?: string;
@@ -9,6 +9,8 @@ type PhoneFieldProps = {
   error?: string;
   autoComplete?: string;
 };
+
+const MASK = "xx xxx-xx-xx";
 
 export function PhoneField({
   label = "Номер телефона",
@@ -27,6 +29,8 @@ export function PhoneField({
     onChange(extractLocalDigits(event.target.value));
   }
 
+  let digitIndex = 0;
+
   return (
     <div className={`field ${error ? "field--invalid" : ""}`}>
       <label htmlFor={id}>{label}</label>
@@ -34,31 +38,34 @@ export function PhoneField({
         <span className="phone-input__prefix">+375</span>
         <div className="phone-input__body">
           <div className="phone-input__mask" aria-hidden="true">
-            {PHONE_MASK_SLOTS.map((slot, slotIndex) => {
-              const caret =
-                focused && slot.kind === "digit" && slot.index === local.length ? (
-                  <span className="phone-input__caret" />
-                ) : null;
-
-              if (slot.kind === "sep") {
+            {MASK.split("").map((char, index) => {
+              if (char === "x") {
+                const current = digitIndex;
+                const digit = local[current];
+                digitIndex += 1;
                 return (
-                  <Fragment key={`sep-${slotIndex}`}>
-                    <span className="phone-input__sep">{slot.char}</span>
-                  </Fragment>
+                  <span key={index} className="phone-input__slot">
+                    {focused && current === local.length ? (
+                      <span className="phone-input__caret" />
+                    ) : null}
+                    <span className={digit ? "phone-input__digit" : "phone-input__x"}>
+                      {digit ?? "x"}
+                    </span>
+                  </span>
                 );
               }
-
-              const digit = local[slot.index];
+              if (char === " ") {
+                return <span key={index} className="phone-input__space" />;
+              }
               return (
-                <Fragment key={`d-${slot.index}`}>
-                  {caret}
-                  <span className={digit ? "phone-input__digit" : "phone-input__x"}>
-                    {digit ?? "x"}
-                  </span>
-                </Fragment>
+                <span key={index} className="phone-input__punct">
+                  {char}
+                </span>
               );
             })}
-            {focused && local.length === 9 ? <span className="phone-input__caret" /> : null}
+            {focused && local.length === LOCAL_LENGTH ? (
+              <span className="phone-input__caret" />
+            ) : null}
           </div>
           <input
             id={id}
