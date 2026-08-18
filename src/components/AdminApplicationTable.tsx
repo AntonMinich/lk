@@ -24,40 +24,42 @@ export function AdminApplicationTable<T extends { id: string }>({
   }
 
   return (
-    <table className="admin-table">
-      <thead>
-        <tr>
-          {columns.map((column) => (
-            <th key={column.key}>{column.label}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((item) => (
-          <tr
-            key={item.id}
-            className={onRowClick ? "admin-table__row--click" : undefined}
-            tabIndex={onRowClick ? 0 : undefined}
-            onClick={onRowClick ? () => onRowClick(item) : undefined}
-            onKeyDown={
-              onRowClick
-                ? (event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      onRowClick(item);
-                    }
-                  }
-                : undefined
-            }
-          >
+    <div className="history-table-wrap">
+      <table className="history-table">
+        <thead>
+          <tr>
             {columns.map((column) => (
-              <td key={column.key} data-label={column.label}>
-                {column.render(item)}
-              </td>
+              <th key={column.key}>{column.label}</th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map((item) => (
+            <tr
+              key={item.id}
+              className={onRowClick ? "admin-table__row--click" : undefined}
+              tabIndex={onRowClick ? 0 : undefined}
+              onClick={onRowClick ? () => onRowClick(item) : undefined}
+              onKeyDown={
+                onRowClick
+                  ? (event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onRowClick(item);
+                      }
+                    }
+                  : undefined
+              }
+            >
+              {columns.map((column) => (
+                <td key={column.key} data-label={column.label}>
+                  {column.render(item)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

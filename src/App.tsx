@@ -13,6 +13,7 @@ import { CabinetCalculatorPage } from "./pages/CabinetCalculatorPage";
 import { CabinetPage } from "./pages/CabinetPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NewApplicationPage } from "./pages/NewApplicationPage";
+import { AdminNotificationsPage, CabinetNotificationsPage } from "./pages/NotificationsPage";
 import { RegisterPage } from "./pages/RegisterPage";
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/cabinet/applications/new" element={<NewApplicationPage />} />
           <Route path="/cabinet/applications/:id" element={<CabinetApplicationDetailPage />} />
           <Route path="/cabinet/calculator" element={<CabinetCalculatorPage />} />
+          <Route path="/cabinet/notifications" element={<CabinetNotificationsPage />} />
         </Route>
         <Route element={<AdminGate />}>
           <Route path="/admin/partners" element={<AdminPartnerListPage />} />
@@ -37,6 +39,7 @@ export default function App() {
           <Route path="/admin/leasing/:id" element={<AdminLeasingDetailPage />} />
           <Route path="/admin/leasing/:id/history" element={<AdminLeasingDetailPage />} />
           <Route path="/admin/profile" element={<AdminProfilePage />} />
+          <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
         </Route>
         <Route path="/admin/applications" element={<Navigate to="/admin/partners" replace />} />
         <Route path="/partners" element={<Navigate to="/admin/partners" replace />} />

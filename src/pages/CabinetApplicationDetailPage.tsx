@@ -25,7 +25,6 @@ export function CabinetApplicationDetailPage() {
     );
   }
 
-  const history = [...application.history].sort((a, b) => a.at.localeCompare(b.at));
   const fields = [
     { label: "Организация", value: application.companyName },
     { label: "Контактное лицо", value: application.contactName },
@@ -51,27 +50,6 @@ export function CabinetApplicationDetailPage() {
             <input type="text" readOnly value={field.value || "—"} />
           </div>
         ))}
-      </div>
-      <h2 className="cabinet__section-title">История</h2>
-      <div className="history-table-wrap">
-        <table className="history-table">
-          <thead>
-            <tr>
-              <th>Дата и время</th>
-              <th>Событие</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.map((item) => (
-              <tr key={item.id}>
-                <td data-label="Дата и время">
-                  <time dateTime={item.at}>{formatDateTime(item.at)}</time>
-                </td>
-                <td data-label="Событие">{item.text}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </section>
   );

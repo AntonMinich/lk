@@ -1,5 +1,6 @@
 import { Link, Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import { BrandMark } from "./BrandMark";
+import { NotificationBell } from "./NotificationBell";
 import { UserMenu } from "./UserMenu";
 import { useAuth } from "../lib/auth";
 import { formatPhoneDisplay } from "../lib/phone";
@@ -58,11 +59,18 @@ export function CabinetLayout() {
             Создать заявку
           </Link>
         )}
-        <UserMenu
-          name={partner.contactName || partner.companyName || "Партнёр"}
-          role={formatPhoneDisplay(partner.phone)}
-          items={[{ label: "Выйти", danger: true, onClick: () => void logout() }]}
-        />
+        <div className="admin-header__tools">
+          <NotificationBell
+            audience="partner"
+            partnerId={partner.id}
+            allHref="/cabinet/notifications"
+          />
+          <UserMenu
+            name={partner.contactName || partner.companyName || "Партнёр"}
+            role={formatPhoneDisplay(partner.phone)}
+            items={[{ label: "Выйти", danger: true, onClick: () => void logout() }]}
+          />
+        </div>
       </header>
       <div className="admin-content">
         <Outlet />
