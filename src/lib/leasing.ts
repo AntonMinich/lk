@@ -5,6 +5,7 @@ import { applyManagerChange, applyStatusChange } from "../../shared/workflow.ts"
 
 export type LeasingApplication = {
   id: string;
+  partnerId: string;
   companyName: string;
   contactName: string;
   phone: string;
@@ -24,6 +25,7 @@ const LEASING_KEY = "lk-local-leasing";
 const SEED: LeasingApplication[] = [
   {
     id: "lease-demo-1",
+    partnerId: "",
     companyName: "ООО «Альфа Транс»",
     contactName: "Иван Петров",
     phone: "+375447574025",
@@ -39,6 +41,7 @@ const SEED: LeasingApplication[] = [
   },
   {
     id: "lease-demo-2",
+    partnerId: "",
     companyName: "ЧТУП «БелСтрой»",
     contactName: "Ольга Сидорова",
     phone: "+375339001122",
@@ -67,6 +70,7 @@ function workflowOf(item: LeasingApplication) {
 function normalize(item: LeasingApplication): LeasingApplication {
   return {
     ...item,
+    partnerId: item.partnerId ?? "",
     status: normalizeStatus(item.status),
     responsibleManager: item.responsibleManager || item.activatedBy || "",
     activatedBy: item.activatedBy ?? "",
@@ -101,8 +105,42 @@ export function listLocalLeasing(): LeasingApplication[] {
   return readAll();
 }
 
+export function listLocalLeasingByPartner(partnerId: string): LeasingApplication[] {
+  return readAll().filter((item) => item.partnerId === partnerId);
+}
+
 export function getLocalLeasing(id: string): LeasingApplication | null {
   return readAll().find((item) => item.id === id) ?? null;
+}
+
+export function createLocalLeasing(input: {
+  partnerId: string;
+  companyName: string;
+  contactName: string;
+  phone: string;
+  asset: string;
+  amount: string;
+  termMonths: string;
+}): LeasingApplication {
+  const createdAt = new Date().toISOString();
+  const application: LeasingApplication = {
+    id: crypto.randomUUID(),
+    partnerId: input.partnerId,
+    companyName: input.companyName,
+    contactName: input.contactName,
+    phone: input.phone,
+    asset: input.asset,
+    amount: input.amount,
+    termMonths: input.termMonths,
+    createdAt,
+    status: "pending",
+    responsibleManager: "",
+    activatedBy: "",
+    activatedAt: "",
+    history: [createdHistoryEvent(createdAt)],
+  };
+  writeAll([...readAll(), application]);
+  return application;
 }
 
 export function setLocalLeasingStatus(
