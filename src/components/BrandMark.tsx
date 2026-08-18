@@ -1,22 +1,15 @@
-import { useState } from "react";
+import { LOGO_SRC, BRAND_NAME } from "../lib/brand";
 
 type BrandMarkProps = {
   className?: string;
 };
 
 export function BrandMark({ className }: BrandMarkProps) {
-  const [failed, setFailed] = useState(false);
-
-  if (failed) {
-    return <span className="logo__mark">LK</span>;
-  }
-
   return (
     <img
       className={className ? `logo__image ${className}` : "logo__image"}
-      src="/image/logo.png"
-      alt="Логотип"
-      onError={() => setFailed(true)}
+      src={LOGO_SRC}
+      alt={BRAND_NAME}
     />
   );
 }
