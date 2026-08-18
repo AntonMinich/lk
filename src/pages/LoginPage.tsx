@@ -68,11 +68,11 @@ export function LoginPage() {
   return (
     <AuthLayout
       title="Вход в кабинет"
-      subtitle="Укажите номер телефона зарегистрированного партнёра и пароль."
+      subtitle="Войти можно после одобрения заявки на регистрацию."
     >
       {registered && (
         <p className="banner banner--ok" role="status">
-          Партнёр зарегистрирован. Войдите по номеру телефона и паролю.
+          Заявка отправлена. Вход откроется, когда её одобрят в админке.
         </p>
       )}
       <ServerStatusBanner />
@@ -132,8 +132,8 @@ export function LoginPage() {
         <Link to="/register" className="secondary-btn">
           Регистрация партнёра
         </Link>
-        <Link to="/partners" className="text-link">
-          Зарегистрированные партнёры
+        <Link to="/admin" className="text-link">
+          Вход для сотрудников
         </Link>
       </form>
     </AuthLayout>

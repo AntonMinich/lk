@@ -1,9 +1,12 @@
+import type { ApplicationStatus } from "./status";
+
 export type PublicPartner = {
   id: string;
   phone: string;
   companyName: string;
   contactName: string;
   createdAt: string;
+  status: ApplicationStatus;
 };
 
 type ApiError = {
@@ -87,4 +90,26 @@ export function registerRequest(input: {
 
 export function logoutRequest() {
   return request<{ ok: true }>("/api/logout", { method: "POST" });
+}
+
+export function adminLogoutRequest() {
+  return request<{ ok: true }>("/api/admin/logout", { method: "POST" });
+}
+
+export function adminLoginRequest(login: string, password: string) {
+  return request<{ ok: true }>("/api/admin/login", {
+    method: "POST",
+    body: JSON.stringify({ login, password }),
+  });
+}
+
+export function adminMeRequest() {
+  return request<{ ok: true }>("/api/admin/me");
+}
+
+export function setPartnerStatusRequest(id: string, status: ApplicationStatus) {
+  return request<{ partner: PublicPartner }>(`/api/partners/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
 }

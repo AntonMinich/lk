@@ -15,24 +15,27 @@ const app = createApp({
 });
 
 const server = createServer(app);
-await new Promise<void>((resolve) => {
-  server.listen(0, "127.0.0.1", resolve);
+const port = 41000 + Math.floor(Math.random() * 8000);
+await new Promise<void>((resolve, reject) => {
+  server.once("error", reject);
+  server.listen(port, "127.0.0.1", resolve);
 });
 
-const address = server.address();
-if (!address || typeof address === "string") {
-  throw new Error("Server did not start");
-}
+const baseUrl = `http://127.0.0.1:${port}`;
 
-const baseUrl = `http://127.0.0.1:${address.port}`;
+type PartnerPayload = {
+  id?: string;
+  phone?: string;
+  status?: string;
+};
 
 type ApiResponse = {
   status: number;
   data: {
     message?: string;
     ok?: boolean;
-    partner?: { phone?: string };
-    partners?: { phone?: string }[];
+    partner?: PartnerPayload;
+    partners?: PartnerPayload[];
   };
   cookies: string;
 };
@@ -91,12 +94,49 @@ try {
   });
   assert.equal(registered.status, 201);
 
-  const wrongPassword = await api("/api/login", {
+  const pendingLogin = await api("/api/login", {
     method: "POST",
-    body: JSON.stringify({ phone: "+375447574025", password: "wrong" }),
+    body: JSON.stringify({ phone: "+375447574025", password: "test123" }),
   });
-  assert.equal(wrongPassword.status, 401);
-  assert.match(String(wrongPassword.data.message), /пароль/i);
+  assert.equal(pendingLogin.status, 403);
+  assert.match(String(pendingLogin.data.message), /не одобрена/i);
+
+  const partnersPublic = await api("/api/partners");
+  assert.equal(partnersPublic.status, 401);
+
+  const adminDenied = await api("/api/admin/login", {
+    method: "POST",
+    body: JSON.stringify({ login: "admin", password: "wrong" }),
+  });
+  assert.equal(adminDenied.status, 401);
+
+  const adminLogin = await api("/api/admin/login", {
+    method: "POST",
+    body: JSON.stringify({ login: "admin", password: "fincode" }),
+  });
+  assert.equal(adminLogin.status, 200);
+  assert.equal(adminLogin.data.ok, true);
+
+  const adminMe = await api("/api/admin/me", {
+    headers: { Cookie: adminLogin.cookies },
+  });
+  assert.equal(adminMe.status, 200);
+
+  const listed = await api("/api/partners", {
+    headers: { Cookie: adminLogin.cookies },
+  });
+  assert.equal(listed.status, 200);
+  const application = listed.data.partners?.find((item) => item.phone === "+375447574025");
+  assert.equal(application?.status, "pending");
+  assert.ok(application?.id);
+
+  const approved = await api(`/api/partners/${application.id}/status`, {
+    method: "PATCH",
+    headers: { Cookie: adminLogin.cookies },
+    body: JSON.stringify({ status: "approved" }),
+  });
+  assert.equal(approved.status, 200);
+  assert.equal(approved.data.partner?.status, "approved");
 
   const login = await api("/api/login", {
     method: "POST",
@@ -111,9 +151,24 @@ try {
   assert.equal(me.status, 200);
   assert.equal(me.data.partner?.phone, "+375447574025");
 
-  const listed = await api("/api/partners");
-  assert.equal(listed.status, 200);
-  assert.equal(listed.data.partners?.some((item) => item.phone === "+375447574025"), true);
+  const rejected = await api(`/api/partners/${application.id}/status`, {
+    method: "PATCH",
+    headers: { Cookie: adminLogin.cookies },
+    body: JSON.stringify({ status: "rejected" }),
+  });
+  assert.equal(rejected.status, 200);
+
+  const meAfterReject = await api("/api/me", {
+    headers: { Cookie: login.cookies },
+  });
+  assert.equal(meAfterReject.status, 401);
+
+  const rejectedLogin = await api("/api/login", {
+    method: "POST",
+    body: JSON.stringify({ phone: "+375447574025", password: "test123" }),
+  });
+  assert.equal(rejectedLogin.status, 403);
+  assert.match(String(rejectedLogin.data.message), /отклонена/i);
 
   console.log("api checks passed");
 } finally {
