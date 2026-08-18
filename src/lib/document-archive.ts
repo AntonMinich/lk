@@ -47,6 +47,10 @@ export function listArchivedDocuments(partnerId: string): ArchivedDocument[] {
     .sort((a, b) => b.archivedAt.localeCompare(a.archivedAt));
 }
 
+export function countArchivedDocuments(partnerId: string): number {
+  return listArchivedDocuments(partnerId).length;
+}
+
 export function addArchivedDocument(input: {
   partnerId: string;
   phone: string;

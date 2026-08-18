@@ -25,6 +25,7 @@ export type AdminDetailPane = "main" | "history" | "archive" | "comments";
 export type AdminDetailLink = {
   to: string;
   label: string;
+  count?: number;
   active?: boolean;
 };
 
@@ -179,8 +180,16 @@ export function AdminApplicationDetail({
   );
 
   const historyRows = [...history].sort((a, b) => a.at.localeCompare(b.at));
+  const archiveCount = extraLinks?.find((item) => item.to.endsWith("/archive"))?.count;
+  const commentsCount = extraLinks?.find((item) => item.to.endsWith("/comments"))?.count;
   const heading =
-    pane === "history" ? "История" : pane === "archive" ? "Архив документов" : pane === "comments" ? "Комментарий" : title;
+    pane === "history"
+      ? `История (${history.length})`
+      : pane === "archive"
+        ? `Архив документов (${archiveCount ?? 0})`
+        : pane === "comments"
+          ? `Комментарий (${commentsCount ?? 0})`
+          : title;
 
   return (
     <div className="admin-detail">
@@ -352,6 +361,7 @@ export function AdminApplicationDetail({
               className={`admin-actions__link${item.active ? " is-active" : ""}`}
             >
               {item.label}
+              {typeof item.count === "number" ? ` (${item.count})` : ""}
             </Link>
           ))}
           {pane !== "main" ? (

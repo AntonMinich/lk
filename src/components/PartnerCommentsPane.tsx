@@ -5,9 +5,10 @@ import { addPartnerComment, listPartnerComments } from "../lib/partner-comments"
 type PartnerCommentsPaneProps = {
   partnerId: string;
   author: string;
+  onChange?: () => void;
 };
 
-export function PartnerCommentsPane({ partnerId, author }: PartnerCommentsPaneProps) {
+export function PartnerCommentsPane({ partnerId, author, onChange }: PartnerCommentsPaneProps) {
   const [text, setText] = useState("");
   const [revision, setRevision] = useState(0);
   const comments = useMemo(() => listPartnerComments(partnerId), [partnerId, revision]);
@@ -20,6 +21,7 @@ export function PartnerCommentsPane({ partnerId, author }: PartnerCommentsPanePr
     }
     setText("");
     setRevision((value) => value + 1);
+    onChange?.();
   }
 
   return (
