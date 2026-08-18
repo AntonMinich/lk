@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { adminLogins } from "../lib/local-partners";
-import { formatDateTime } from "../lib/format";
+import { formatDateTime, formatFileSize } from "../lib/format";
 import type { HistoryEvent } from "../lib/history";
 import { STATUS_LABEL, type ApplicationStatus } from "../lib/status";
 
@@ -10,10 +10,17 @@ export type AdminFormField = {
   value: string;
 };
 
+export type AdminDocumentItem = {
+  label: string;
+  fileName: string;
+  size?: number;
+};
+
 type AdminApplicationDetailProps = {
   title: string;
   crumbs?: { label: string; to?: string }[];
   fields: AdminFormField[];
+  documents?: AdminDocumentItem[];
   status: ApplicationStatus;
   manager: string;
   history: HistoryEvent[];
@@ -44,6 +51,7 @@ export function AdminApplicationDetail({
   title,
   crumbs,
   fields,
+  documents,
   status,
   manager,
   history,
@@ -154,12 +162,44 @@ export function AdminApplicationDetail({
             </table>
           </div>
         ) : (
-          <div className="admin-form-grid">
-            {fields.map((field) => (
-              <Field key={field.label} {...field} />
-            ))}
-            <Field label="Статус" value={STATUS_LABEL[status]} />
-          </div>
+          <>
+            <div className="admin-form-grid">
+              {fields.map((field) => (
+                <Field key={field.label} {...field} />
+              ))}
+              <Field label="Статус" value={STATUS_LABEL[status]} />
+            </div>
+            {documents ? (
+              <div className="admin-docs">
+                <h2>Приложенные документы</h2>
+                {documents.length === 0 ? (
+                  <p className="admin-docs__empty">Документы не загружены</p>
+                ) : (
+                  <ul className="admin-docs__list">
+                    {documents.map((item) => (
+                      <li key={`${item.label}-${item.fileName}`} className="admin-docs__item">
+                        <span className="admin-docs__icon" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" width="18" height="18">
+                            <path
+                              fill="currentColor"
+                              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm1 7V3.5L18.5 9H15ZM8 13h8v2H8v-2Zm0 4h8v2H8v-2Zm0-8h4v2H8V9Z"
+                            />
+                          </svg>
+                        </span>
+                        <span className="admin-docs__meta">
+                          <strong>{item.label}</strong>
+                          <span>
+                            {item.fileName}
+                            {item.size ? ` · ${formatFileSize(item.size)}` : ""}
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ) : null}
+          </>
         )}
       </section>
       <aside className="admin-actions">

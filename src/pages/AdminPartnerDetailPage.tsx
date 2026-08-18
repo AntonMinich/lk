@@ -112,17 +112,13 @@ export function AdminPartnerDetailPage() {
         { label: "ФИО контактного лица", value: current.contactName },
         { label: "Телефон", value: formatPhoneDisplay(current.phone) },
         { label: "Email", value: current.email },
-        {
-          label: "Документы",
-          value:
-            current.documents.length > 0
-              ? current.documents
-                  .map((item) => `${partnerDocumentLabel(item.key)}: ${item.fileName}`)
-                  .join("; ")
-              : "Не загружены",
-        },
         { label: "Дата заявки", value: formatDateTime(current.createdAt) },
       ]}
+      documents={current.documents.map((item) => ({
+        label: partnerDocumentLabel(item.key),
+        fileName: item.fileName,
+        size: item.size,
+      }))}
     />
   );
 }
