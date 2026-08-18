@@ -6,7 +6,7 @@ import { useAuth } from "../lib/auth";
 import { validatePartnerPhone } from "../lib/phone";
 
 export function RegisterPage() {
-  const { partner, register } = useAuth();
+  const { ready, partner, register } = useAuth();
   const navigate = useNavigate();
 
   const [companyName, setCompanyName] = useState("");
@@ -16,12 +16,27 @@ export function RegisterPage() {
   const [passwordRepeat, setPasswordRepeat] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [formError, setFormError] = useState("");
+  const [pending, setPending] = useState(false);
+
+  if (!ready) {
+    return null;
+  }
 
   if (partner) {
     return <Navigate to="/cabinet" replace />;
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function validatePhoneField(nextPhone = phone): boolean {
+    const phoneResult = validatePartnerPhone(nextPhone);
+    if (!phoneResult.ok) {
+      setPhoneError(phoneResult.message);
+      return false;
+    }
+    setPhoneError("");
+    return true;
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError("");
 
@@ -47,12 +62,14 @@ export function RegisterPage() {
       return;
     }
 
-    const result = register({
+    setPending(true);
+    const result = await register({
       phone: phoneResult.canonical,
       password,
       companyName: companyName.trim(),
       contactName: contactName.trim(),
     });
+    setPending(false);
 
     if (!result.ok) {
       setFormError(result.message);
@@ -65,7 +82,7 @@ export function RegisterPage() {
   return (
     <AuthLayout
       title="Регистрация партнёра"
-      subtitle="Оставьте данные организации. После проверки можно будет войти в кабинет."
+      subtitle="Оставьте данные организации. После регистрации можно войти в кабинет."
       footer={
         <p className="auth-alt">
           Уже есть доступ?{" "}
@@ -104,7 +121,14 @@ export function RegisterPage() {
           value={phone}
           onChange={(value) => {
             setPhone(value);
-            setPhoneError("");
+            if (phoneError) {
+              validatePhoneField(value);
+            }
+          }}
+          onBlur={() => {
+            if (phone) {
+              validatePhoneField();
+            }
           }}
           error={phoneError}
           autoComplete="tel"
@@ -140,8 +164,8 @@ export function RegisterPage() {
           </p>
         )}
 
-        <button type="submit" className="primary-btn">
-          Отправить заявку
+        <button type="submit" className="primary-btn" disabled={pending}>
+          {pending ? "Отправляем…" : "Отправить заявку"}
         </button>
       </form>
     </AuthLayout>

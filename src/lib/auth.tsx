@@ -1,93 +1,83 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import { toCanonicalPhone } from "./phone";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { getMe, loginRequest, logoutRequest, registerRequest, type PublicPartner } from "./api";
 
-const SESSION_KEY = "lk-partner-session";
-const PARTNERS_KEY = "lk-partners";
-
-export type Partner = {
-  phone: string;
-  password: string;
-  companyName: string;
-  contactName: string;
-};
+type AuthResult = { ok: true } | { ok: false; message: string };
 
 type AuthContextValue = {
-  partner: Partner | null;
-  login: (phone: string, password: string) => { ok: true } | { ok: false; message: string };
-  register: (partner: Partner) => { ok: true } | { ok: false; message: string };
-  logout: () => void;
+  ready: boolean;
+  partner: PublicPartner | null;
+  login: (phone: string, password: string) => Promise<AuthResult>;
+  register: (input: {
+    phone: string;
+    password: string;
+    companyName: string;
+    contactName: string;
+  }) => Promise<AuthResult>;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function readPartners(): Partner[] {
-  try {
-    const raw = localStorage.getItem(PARTNERS_KEY);
-    return raw ? (JSON.parse(raw) as Partner[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function writePartners(partners: Partner[]) {
-  localStorage.setItem(PARTNERS_KEY, JSON.stringify(partners));
-}
-
-function readSession(): Partner | null {
-  try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
-    return raw ? (JSON.parse(raw) as Partner) : null;
-  } catch {
-    return null;
-  }
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [partner, setPartner] = useState<Partner | null>(() => readSession());
+  const [ready, setReady] = useState(false);
+  const [partner, setPartner] = useState<PublicPartner | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getMe()
+      .then((data) => {
+        if (!cancelled) {
+          setPartner(data.partner);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPartner(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setReady(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
+      ready,
       partner,
-      login: (phone, password) => {
-        const canonical = toCanonicalPhone(phone);
-        const partners = readPartners();
-        const found = partners.find((item) => item.phone === canonical);
-
-        if (!found) {
-          // Макет: валидный номер и пароль открывают кабинет даже без регистрации.
-          const guest: Partner = {
-            phone: canonical,
-            password,
-            companyName: "Партнёр",
-            contactName: "",
-          };
-          sessionStorage.setItem(SESSION_KEY, JSON.stringify(guest));
-          setPartner(guest);
+      login: async (phone, password) => {
+        try {
+          const data = await loginRequest(phone, password);
+          setPartner(data.partner);
           return { ok: true };
+        } catch (error) {
+          return { ok: false, message: error instanceof Error ? error.message : "Ошибка входа" };
         }
-
-        if (found.password !== password) {
-          return { ok: false, message: "Неверный пароль" };
-        }
-
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify(found));
-        setPartner(found);
-        return { ok: true };
       },
-      register: (next) => {
-        const partners = readPartners();
-        if (partners.some((item) => item.phone === next.phone)) {
-          return { ok: false, message: "Партнёр с таким номером уже зарегистрирован" };
+      register: async (input) => {
+        try {
+          await registerRequest(input);
+          return { ok: true };
+        } catch (error) {
+          return {
+            ok: false,
+            message: error instanceof Error ? error.message : "Ошибка регистрации",
+          };
         }
-        writePartners([...partners, next]);
-        return { ok: true };
       },
-      logout: () => {
-        sessionStorage.removeItem(SESSION_KEY);
-        setPartner(null);
+      logout: async () => {
+        try {
+          await logoutRequest();
+        } finally {
+          setPartner(null);
+        }
       },
     }),
-    [partner],
+    [partner, ready],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

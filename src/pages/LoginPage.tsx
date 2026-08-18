@@ -6,7 +6,7 @@ import { useAuth } from "../lib/auth";
 import { validatePartnerPhone } from "../lib/phone";
 
 export function LoginPage() {
-  const { partner, login } = useAuth();
+  const { ready, partner, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const registered = Boolean((location.state as { registered?: boolean } | null)?.registered);
@@ -16,12 +16,27 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [phoneError, setPhoneError] = useState("");
   const [formError, setFormError] = useState("");
+  const [pending, setPending] = useState(false);
+
+  if (!ready) {
+    return null;
+  }
 
   if (partner) {
     return <Navigate to="/cabinet" replace />;
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function validatePhoneField(nextPhone = phone): boolean {
+    const phoneResult = validatePartnerPhone(nextPhone);
+    if (!phoneResult.ok) {
+      setPhoneError(phoneResult.message);
+      return false;
+    }
+    setPhoneError("");
+    return true;
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError("");
 
@@ -37,7 +52,10 @@ export function LoginPage() {
       return;
     }
 
-    const result = login(phoneResult.canonical, password);
+    setPending(true);
+    const result = await login(phoneResult.canonical, password);
+    setPending(false);
+
     if (!result.ok) {
       setFormError(result.message);
       return;
@@ -49,20 +67,28 @@ export function LoginPage() {
   return (
     <AuthLayout
       title="Вход в кабинет"
-      subtitle="Укажите номер телефона и пароль, выданные при подключении."
+      subtitle="Укажите номер телефона зарегистрированного партнёра и пароль."
     >
       {registered && (
         <p className="banner banner--ok" role="status">
-          Заявка на регистрацию принята. Войдите по номеру телефона и паролю.
+          Партнёр зарегистрирован. Войдите по номеру телефона и паролю.
         </p>
       )}
 
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <PhoneField
+          label="Логин"
           value={phone}
           onChange={(value) => {
             setPhone(value);
-            setPhoneError("");
+            if (phoneError) {
+              validatePhoneField(value);
+            }
+          }}
+          onBlur={() => {
+            if (phone) {
+              validatePhoneField();
+            }
           }}
           error={phoneError}
         />
@@ -97,8 +123,8 @@ export function LoginPage() {
           )}
         </div>
 
-        <button type="submit" className="primary-btn">
-          Войти
+        <button type="submit" className="primary-btn" disabled={pending}>
+          {pending ? "Входим…" : "Войти"}
         </button>
 
         <Link to="/register" className="secondary-btn">

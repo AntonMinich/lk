@@ -1,6 +1,9 @@
 node_modules
 dist
+.vite
 .DS_Store
 *.local
 .env
 .env.*
+data/partners.json
+data/*.tmp
