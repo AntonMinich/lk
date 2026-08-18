@@ -25,6 +25,8 @@ import {
   registerLocalPartner,
   setLocalPartnerManager,
   setLocalPartnerStatus,
+  writeLocalAdmin,
+  writeLocalSession,
 } from "./local-partners";
 import type { ApplicationStatus } from "./status";
 
@@ -66,6 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
+      let nextPartner = readLocalSession();
+      let nextAdmin = isLocalAdmin();
+      let nextAdminName = localAdminName() ?? "";
       const online = await isApiOnline();
       if (cancelled) {
         return;
@@ -74,32 +79,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (online) {
         try {
           const data = await getMe();
-          if (!cancelled) {
-            setPartner(data.partner);
-          }
+          nextPartner = data.partner;
+          writeLocalSession(data.partner);
         } catch {
-          if (!cancelled) {
-            setPartner(null);
-          }
+          // cookie session may be missing on GitHub Pages; keep the local one
         }
         try {
           const me = await adminMeRequest();
-          if (!cancelled) {
-            setAdmin(true);
-            setAdminName(me.login);
-          }
+          nextAdmin = true;
+          nextAdminName = me.login;
+          writeLocalAdmin(me.login);
         } catch {
-          if (!cancelled) {
-            setAdmin(false);
-            setAdminName("");
-          }
+          // keep local admin session
         }
-      } else if (!cancelled) {
-        setPartner(readLocalSession());
-        setAdmin(isLocalAdmin());
-        setAdminName(localAdminName() ?? "");
       }
       if (!cancelled) {
+        setPartner(nextPartner);
+        setAdmin(nextAdmin);
+        setAdminName(nextAdminName);
         setReady(true);
       }
     })();
@@ -119,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (apiOnline) {
           try {
             const data = await loginRequest(phone, password);
+            writeLocalSession(data.partner);
             setPartner(data.partner);
             return { ok: true };
           } catch (error) {
@@ -147,6 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return result.ok ? { ok: true } : result;
       },
       logout: async () => {
+        clearLocalSession();
         if (apiOnline) {
           try {
             await logoutRequest();
@@ -155,13 +154,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
           return;
         }
-        clearLocalSession();
         setPartner(null);
       },
       loginAdmin: async (login, password) => {
         if (apiOnline) {
           try {
             const data = await adminLoginRequest(login, password);
+            writeLocalAdmin(data.login);
             setAdmin(true);
             setAdminName(data.login);
             return { ok: true };
@@ -180,6 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return result;
       },
       logoutAdmin: async () => {
+        clearLocalAdmin();
         if (apiOnline) {
           try {
             await adminLogoutRequest();
@@ -189,7 +189,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
           return;
         }
-        clearLocalAdmin();
         setAdmin(false);
         setAdminName("");
       },
