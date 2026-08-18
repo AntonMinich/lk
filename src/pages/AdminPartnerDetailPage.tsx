@@ -4,6 +4,7 @@ import { AdminApplicationDetail } from "../components/AdminApplicationDetail";
 import { useAuth } from "../lib/auth";
 import { formatDateTime } from "../lib/format";
 import { formatPhoneDisplay } from "../lib/phone";
+import { partnerDocumentLabel } from "../lib/partner-docs";
 import type { PublicPartner } from "../lib/api";
 import type { ApplicationStatus } from "../lib/status";
 
@@ -101,9 +102,20 @@ export function AdminPartnerDetailPage() {
       onBlock={() => void changeStatus("blocked")}
       onChangeManager={(name) => void changeManager(name)}
       fields={[
-        { label: "Организация", value: current.companyName },
-        { label: "Контактное лицо", value: current.contactName },
+        { label: "Наименование юридического лица", value: current.companyName },
+        { label: "УНП", value: current.unp },
+        { label: "ФИО контактного лица", value: current.contactName },
         { label: "Телефон", value: formatPhoneDisplay(current.phone) },
+        { label: "Email", value: current.email },
+        {
+          label: "Документы",
+          value:
+            current.documents.length > 0
+              ? current.documents
+                  .map((item) => `${partnerDocumentLabel(item.key)}: ${item.fileName}`)
+                  .join("; ")
+              : "Не загружены",
+        },
         { label: "Дата заявки", value: formatDateTime(current.createdAt) },
       ]}
     />

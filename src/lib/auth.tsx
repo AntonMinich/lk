@@ -47,6 +47,9 @@ type AuthContextValue = {
     password: string;
     companyName: string;
     contactName: string;
+    unp?: string;
+    email?: string;
+    documents?: PublicPartner["documents"];
   }) => Promise<AuthResult>;
   logout: () => Promise<void>;
   loginAdmin: (login: string, password: string) => Promise<AuthResult>;
