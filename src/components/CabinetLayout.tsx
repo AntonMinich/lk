@@ -1,6 +1,6 @@
 import { Link, Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
-import { BrandMark } from "./BrandMark";
 import { NotificationBell } from "./NotificationBell";
+import { OsMark } from "./OsMark";
 import { UserMenu } from "./UserMenu";
 import { useAuth } from "../lib/auth";
 import { formatPhoneDisplay } from "../lib/phone";
@@ -38,8 +38,7 @@ export function CabinetLayout() {
     <div className="admin-shell">
       <aside className="admin-sidebar">
         <div className="admin-sidebar__brand">
-          <BrandMark />
-          <p className="admin-sidebar__kicker">Кабинет партнёра</p>
+          <OsMark subtitle="Кабинет партнёра" />
         </div>
         <nav className="admin-nav" aria-label="Разделы кабинета">
           {NAV.map((item) => (
@@ -54,6 +53,11 @@ export function CabinetLayout() {
         </nav>
       </aside>
       <header className="admin-header cabinet-header">
+        <div className="admin-header__crumb">
+          <span>FINCODE</span>
+          <span className="admin-header__slash">/</span>
+          <span>Кабинет партнёра</span>
+        </div>
         {creating ? null : (
           <Link to="/cabinet/applications/new" className="primary-btn cabinet__create">
             Создать заявку
