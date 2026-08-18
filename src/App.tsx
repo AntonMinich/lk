@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AdminGate } from "./components/AdminLayout";
 import { CabinetGate } from "./components/CabinetLayout";
 import { AuthProvider } from "./lib/auth";
+import { AdminDealsListPage } from "./pages/AdminDealsListPage";
+import { AdminCreatePartnerPage } from "./pages/AdminCreatePartnerPage";
 import { AdminLeasingDetailPage } from "./pages/AdminLeasingDetailPage";
 import { AdminLeasingListPage } from "./pages/AdminLeasingListPage";
 import { AdminLoginPage } from "./pages/AdminLoginPage";
@@ -11,6 +13,7 @@ import { AdminPartnerListPage } from "./pages/AdminPartnerListPage";
 import { AdminProfilePage } from "./pages/AdminProfilePage";
 import { CabinetApplicationDetailPage } from "./pages/CabinetApplicationDetailPage";
 import { CabinetCalculatorPage } from "./pages/CabinetCalculatorPage";
+import { CabinetDealsPage } from "./pages/CabinetDealsPage";
 import { CabinetPage } from "./pages/CabinetPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NewApplicationPage } from "./pages/NewApplicationPage";
@@ -29,6 +32,8 @@ export default function App() {
           <Route path="/cabinet/applications" element={<CabinetPage />} />
           <Route path="/cabinet/applications/new" element={<NewApplicationPage />} />
           <Route path="/cabinet/applications/:id" element={<CabinetApplicationDetailPage />} />
+          <Route path="/cabinet/deals" element={<CabinetDealsPage />} />
+          <Route path="/cabinet/deals/:id" element={<CabinetApplicationDetailPage />} />
           <Route path="/cabinet/calculator" element={<CabinetCalculatorPage />} />
           <Route path="/cabinet/notifications" element={<CabinetNotificationsPage />} />
         </Route>
@@ -39,6 +44,7 @@ export default function App() {
           <Route path="/admin/partners/:id/archive" element={<AdminPartnerDetailPage />} />
           <Route path="/admin/partners/:id/comments" element={<AdminPartnerDetailPage />} />
           <Route path="/admin/directory" element={<AdminPartnerDirectoryPage />} />
+          <Route path="/admin/directory/new" element={<AdminCreatePartnerPage />} />
           <Route path="/admin/directory/:id" element={<AdminPartnerDetailPage />} />
           <Route path="/admin/directory/:id/history" element={<AdminPartnerDetailPage />} />
           <Route path="/admin/directory/:id/archive" element={<AdminPartnerDetailPage />} />
@@ -46,6 +52,9 @@ export default function App() {
           <Route path="/admin/leasing" element={<AdminLeasingListPage />} />
           <Route path="/admin/leasing/:id" element={<AdminLeasingDetailPage />} />
           <Route path="/admin/leasing/:id/history" element={<AdminLeasingDetailPage />} />
+          <Route path="/admin/deals" element={<AdminDealsListPage />} />
+          <Route path="/admin/deals/:id" element={<AdminLeasingDetailPage />} />
+          <Route path="/admin/deals/:id/history" element={<AdminLeasingDetailPage />} />
           <Route path="/admin/profile" element={<AdminProfilePage />} />
           <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
         </Route>

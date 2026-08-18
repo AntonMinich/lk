@@ -4,13 +4,29 @@ import { AdminApplicationDetail } from "../components/AdminApplicationDetail";
 import { useAuth } from "../lib/auth";
 import { formatLeasingApplicationNo } from "../lib/application-no";
 import { formatDateTime } from "../lib/format";
+import { getLocalLeasing, setLocalLeasingManager, setLocalLeasingStatus } from "../lib/leasing";
 import {
-  getLocalLeasing,
-  setLocalLeasingManager,
-  setLocalLeasingStatus,
-} from "../lib/leasing";
-import { LEASING_STATUS_LABEL, type LeasingStatus } from "../lib/leasing-status";
+  LEASING_STATUS_LABEL,
+  leasingAdminPath,
+  type LeasingStatus,
+} from "../lib/leasing-status";
 import { formatPhoneDisplay } from "../lib/phone";
+
+const APPLICATION_ACTIONS: { status: LeasingStatus; label: string; kind: "ghost" | "approve" | "reject" }[] = [
+  { status: "draft", label: "Черновик", kind: "ghost" },
+  { status: "new", label: "Новая", kind: "ghost" },
+  { status: "in_work", label: "В работе", kind: "ghost" },
+  { status: "questionnaire", label: "Анкетные данные", kind: "ghost" },
+  { status: "cancelled", label: "Отменить", kind: "reject" },
+];
+
+const DEAL_ACTIONS: { status: LeasingStatus; label: string; kind: "ghost" | "approve" | "reject" }[] = [
+  { status: "document_prep", label: "Подготовка документов", kind: "ghost" },
+  { status: "signing", label: "Подписание документов", kind: "ghost" },
+  { status: "waiting_originals", label: "Ожидание оригиналов", kind: "ghost" },
+  { status: "completed", label: "Завершить", kind: "approve" },
+  { status: "cancelled", label: "Отменить", kind: "reject" },
+];
 
 export function AdminLeasingDetailPage() {
   const { id } = useParams();
@@ -20,22 +36,35 @@ export function AdminLeasingDetailPage() {
   const [busy, setBusy] = useState(false);
   const [revision, setRevision] = useState(0);
   const showHistory = Boolean(id) && location.pathname.endsWith("/history");
+  const fromDeals = location.pathname.startsWith("/admin/deals");
 
   const application = useMemo(() => (id ? getLocalLeasing(id) : null), [id, revision]);
 
   if (!id) {
-    return <Navigate to="/admin/leasing" replace />;
+    return <Navigate to={fromDeals ? "/admin/deals" : "/admin/leasing"} replace />;
   }
 
   if (!application) {
     return (
       <section className="admin-page">
-        <h1>Заявка не найдена</h1>
+        <h1>{fromDeals ? "Сделка не найдена" : "Заявка не найдена"}</h1>
       </section>
     );
   }
 
   const current = application;
+  if (fromDeals && current.pipeline !== "deal") {
+    return <Navigate to={leasingAdminPath(current.id, current.pipeline)} replace />;
+  }
+  if (!fromDeals && current.pipeline === "deal") {
+    return <Navigate to={leasingAdminPath(current.id, current.pipeline)} replace />;
+  }
+
+  const listHref = current.pipeline === "deal" ? "/admin/deals" : "/admin/leasing";
+  const listLabel = current.pipeline === "deal" ? "Сделки" : "Заявки на лизинг";
+  const detailHref = leasingAdminPath(current.id, current.pipeline);
+  const title = current.pipeline === "deal" ? "Сделка" : "Заявка на лизинг";
+  const actions = current.pipeline === "deal" ? DEAL_ACTIONS : APPLICATION_ACTIONS;
 
   function changeStatus(status: LeasingStatus) {
     setError("");
@@ -63,17 +92,18 @@ export function AdminLeasingDetailPage() {
 
   return (
     <AdminApplicationDetail
-      title="Заявка на лизинг"
+      title={title}
       crumbs={[
-        { label: "Заявки на лизинг", to: "/admin/leasing" },
+        { label: listLabel, to: listHref },
         { label: formatLeasingApplicationNo(current.seq, current.createdAt) },
       ]}
       status={current.status}
       statusLabel={LEASING_STATUS_LABEL[current.status]}
       manager={current.responsibleManager}
       history={current.history}
-      historyHref={`/admin/leasing/${current.id}/history`}
-      backHref={`/admin/leasing/${current.id}`}
+      historyHref={`${detailHref}/history`}
+      backHref={detailHref}
+      backLabel={current.pipeline === "deal" ? "К сделке" : "К заявке"}
       pane={showHistory ? "history" : "main"}
       allowManagerChange
       busy={busy}
@@ -81,46 +111,29 @@ export function AdminLeasingDetailPage() {
       onChangeManager={changeManager}
       decisionActions={
         <>
-          {current.status !== "in_work" ? (
-            <button
-              type="button"
-              className="action-btn action-btn--ghost"
-              disabled={busy}
-              onClick={() => changeStatus("in_work")}
-            >
-              В работе
-            </button>
-          ) : null}
-          {current.status !== "waiting_originals" ? (
-            <button
-              type="button"
-              className="action-btn action-btn--ghost"
-              disabled={busy}
-              onClick={() => changeStatus("waiting_originals")}
-            >
-              Ожидание оригиналов
-            </button>
-          ) : null}
-          {current.status !== "completed" ? (
+          {current.pipeline === "application" && current.status === "questionnaire" ? (
             <button
               type="button"
               className="action-btn action-btn--approve"
               disabled={busy}
-              onClick={() => changeStatus("completed")}
+              onClick={() => changeStatus("document_prep")}
             >
-              Завершить
+              Подготовка документов
             </button>
           ) : null}
-          {current.status !== "rejected" ? (
-            <button
-              type="button"
-              className="action-btn action-btn--reject"
-              disabled={busy}
-              onClick={() => changeStatus("rejected")}
-            >
-              Отклонить
-            </button>
-          ) : null}
+          {actions.map((item) =>
+            item.status === current.status ? null : (
+              <button
+                key={item.status}
+                type="button"
+                className={`action-btn action-btn--${item.kind}`}
+                disabled={busy}
+                onClick={() => changeStatus(item.status)}
+              >
+                {item.label}
+              </button>
+            ),
+          )}
         </>
       }
       fields={[

@@ -466,7 +466,7 @@ input {
 
 .filter-bar {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -506,6 +506,10 @@ input {
 
 .filter-card--red {
   --filter: #dc2626;
+}
+
+.filter-card--slate {
+  --filter: #64748b;
 }
 
 .filter-card::before {
@@ -888,6 +892,11 @@ input {
   border-radius: 16px;
   background: var(--white);
   box-shadow: 0 8px 24px rgb(15 23 42 / 6%);
+}
+
+.register-card--embedded {
+  width: 100%;
+  box-shadow: none;
 }
 
 .register-card h1 {
@@ -1875,6 +1884,36 @@ input {
   background: #eff6ff;
 }
 
+.admin-status--draft {
+  border-color: #64748b;
+  background: #f8fafc;
+}
+
+.admin-status--new {
+  border-color: #ea580c;
+  background: #fff7ed;
+}
+
+.admin-status--questionnaire {
+  border-color: #16a34a;
+  background: #ecfdf5;
+}
+
+.admin-status--document_prep {
+  border-color: #ea580c;
+  background: #fff7ed;
+}
+
+.admin-status--signing {
+  border-color: #7c3aed;
+  background: #f5f3ff;
+}
+
+.admin-status--cancelled {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
 .admin-status--waiting_originals {
   border-color: #7c3aed;
   background: #f5f3ff;
@@ -2236,6 +2275,36 @@ input {
 .status-pill--in_work {
   background: #eff6ff;
   color: #1d4ed8;
+}
+
+.status-pill--draft {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.status-pill--new {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.status-pill--questionnaire {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.status-pill--document_prep {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.status-pill--signing {
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+
+.status-pill--cancelled {
+  background: #fef2f2;
+  color: #b91c1c;
 }
 
 .status-pill--waiting_originals {

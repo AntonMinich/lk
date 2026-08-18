@@ -1,6 +1,6 @@
 import { APPLICATION_FILTERS, type ApplicationFilterKey } from "../lib/status";
 
-export type StatusFilterTone = "blue" | "orange" | "purple" | "green" | "red";
+export type StatusFilterTone = "blue" | "orange" | "purple" | "green" | "red" | "slate";
 
 export type StatusFilterItem<K extends string = string> = {
   key: K;

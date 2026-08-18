@@ -22,6 +22,8 @@ assertEqual(STATUS_LABEL.rejected, "Отклонено", "rejected label");
 assertEqual(isRegistrationQueue("approved"), true, "approved stays in queue");
 assertEqual(isRegistrationQueue("active"), false, "active leaves queue");
 assertEqual(isDirectoryPartner("active"), true, "active is a partner");
+assertEqual(isDirectoryPartner("blocked"), true, "blocked stays in directory");
+assertEqual(isRegistrationQueue("blocked"), false, "blocked leaves registration queue");
 assertEqual(loginBlockedMessage("approved"), null, "approved can log in");
 assertEqual(loginBlockedMessage("active"), null, "active can log in");
 assertEqual(Boolean(loginBlockedMessage("pending")), true, "pending blocked");

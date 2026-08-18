@@ -61,11 +61,30 @@ export function loginBlockedMessage(status: ApplicationStatus): string | null {
 }
 
 export function isRegistrationQueue(status: ApplicationStatus): boolean {
-  return status !== "active";
+  return status === "pending" || status === "accepted" || status === "approved" || status === "rejected";
 }
 
 export function isDirectoryPartner(status: ApplicationStatus): boolean {
-  return status === "active";
+  return status === "active" || status === "blocked";
+}
+
+export type DirectoryFilterKey = "all" | "active" | "blocked";
+
+export const DIRECTORY_FILTERS: {
+  key: DirectoryFilterKey;
+  label: string;
+  tone: "blue" | "green" | "red";
+}[] = [
+  { key: "all", label: "Все пользователи", tone: "blue" },
+  { key: "active", label: "Активные", tone: "green" },
+  { key: "blocked", label: "Заблокированные", tone: "red" },
+];
+
+export function matchesDirectoryFilter(status: ApplicationStatus, filter: DirectoryFilterKey): boolean {
+  if (filter === "all") {
+    return isDirectoryPartner(status);
+  }
+  return status === filter;
 }
 
 export function matchesApplicationFilter(status: ApplicationStatus, filter: ApplicationFilterKey): boolean {

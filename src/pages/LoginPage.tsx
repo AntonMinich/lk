@@ -72,7 +72,7 @@ export function LoginPage() {
     <AuthLayout title="Вход в кабинет">
       {registered && (
         <p className="banner banner--ok" role="status">
-          Заявка отправлена. Вход откроется после одобрения: телефон и УНП в качестве временного пароля.
+          Заявка отправлена. После одобрения вход: телефон и пароль 111111.
         </p>
       )}
 
@@ -106,7 +106,7 @@ export function LoginPage() {
                 setPassword(event.target.value);
                 setFormError("");
               }}
-              placeholder="Введите пароль"
+              placeholder="111111"
             />
             <button
               type="button"
