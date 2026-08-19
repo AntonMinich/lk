@@ -79,6 +79,9 @@ const PANE_TITLE: Partial<Record<AdminDetailPane, string>> = {
   outlets: "Торговые точки",
   settings: "Настройка контрагента",
   applications: "Заявки",
+  history: "История",
+  archive: "Архив документов",
+  comments: "Комментарии",
 };
 
 export function AdminPartnerDetailPage() {
