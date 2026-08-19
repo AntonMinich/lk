@@ -68,6 +68,28 @@ export function isDirectoryPartner(status: ApplicationStatus): boolean {
   return status === "active" || status === "blocked";
 }
 
+export function isDirectoryPartnerPath(pathname: string): boolean {
+  return pathname.includes("/admin/directory");
+}
+
+export function showPartnerDirectoryCard(status: ApplicationStatus, pathname: string): boolean {
+  return isDirectoryPartnerPath(pathname) || isDirectoryPartner(status);
+}
+
+/** Unblocking a partner returns them to the directory as active, not to the registration queue. */
+export function partnerStatusAfterCardDecision(
+  current: ApplicationStatus,
+  decision: "approve" | "block",
+): ApplicationStatus {
+  if (decision === "block") {
+    return "blocked";
+  }
+  if (current === "blocked") {
+    return "active";
+  }
+  return "approved";
+}
+
 export type DirectoryFilterKey = "all" | "active" | "blocked";
 
 export const DIRECTORY_FILTERS: {

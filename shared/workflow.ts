@@ -31,7 +31,12 @@ export function applyStatusChange(
     history.push(
       createHistoryEvent({
         actor,
-        text: "Партнёр активировал личный кабинет",
+        text:
+          current.status === "blocked"
+            ? actor
+              ? `${actor} активировал партнёра`
+              : "Партнёр активирован"
+            : "Партнёр активировал личный кабинет",
       }),
     );
   } else {

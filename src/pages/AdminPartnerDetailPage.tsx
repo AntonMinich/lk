@@ -5,20 +5,38 @@ import { DocumentArchivePane } from "../components/DocumentArchivePane";
 import { PartnerActivityPanel } from "../components/PartnerActivityPanel";
 import { PartnerCardNav } from "../components/PartnerCardNav";
 import { PartnerCommentsPane } from "../components/PartnerCommentsPane";
-import { PartnerProfilePanel } from "../components/PartnerProfilePanel";
+import {
+  PartnerFinancingSection,
+  PartnerOutletsSection,
+  PartnerUsersSection,
+} from "../components/PartnerProfilePanel";
+import { PartnerSettingsForm } from "../components/PartnerSettingsForm";
 import { useAuth } from "../lib/auth";
 import { formatPartnerApplicationNo } from "../lib/application-no";
 import { addArchivedDocument, countArchivedDocuments } from "../lib/document-archive";
 import { formatDate, formatDateTime } from "../lib/format";
 import { leasingForPartnerCard } from "../lib/leasing";
 import { replaceLocalPartnerDocument } from "../lib/local-partners";
-import { getPartnerProfile, goodsSourceLabel } from "../lib/partner-profile";
+import {
+  findPartnerUser,
+  getPartnerProfile,
+  goodsSourceLabel,
+  PARTNER_USER_STATUS_LABEL,
+  savePartnerProfile,
+  type CounterpartySettings,
+} from "../lib/partner-profile";
 import { formatPhoneDisplay } from "../lib/phone";
 import { partnerDocumentLabel, type PartnerDocumentKey } from "../lib/partner-docs";
 import { getPartnerFile, putStoredFile, savePartnerFiles } from "../lib/partner-files";
 import { countPartnerComments } from "../lib/partner-comments";
 import type { PublicPartner } from "../lib/api";
-import { isDirectoryPartner, STATUS_LABEL, type ApplicationStatus } from "../lib/status";
+import {
+  isDirectoryPartner,
+  partnerStatusAfterCardDecision,
+  showPartnerDirectoryCard,
+  STATUS_LABEL,
+  type ApplicationStatus,
+} from "../lib/status";
 
 function paneFromPath(pathname: string): AdminDetailPane {
   if (pathname.endsWith("/history")) {
@@ -30,17 +48,48 @@ function paneFromPath(pathname: string): AdminDetailPane {
   if (pathname.endsWith("/comments")) {
     return "comments";
   }
+  if (pathname.includes("/users/")) {
+    return "user";
+  }
+  if (pathname.endsWith("/users")) {
+    return "users";
+  }
+  if (pathname.endsWith("/financing")) {
+    return "financing";
+  }
+  if (pathname.endsWith("/documents")) {
+    return "documents";
+  }
+  if (pathname.endsWith("/outlets")) {
+    return "outlets";
+  }
+  if (pathname.endsWith("/settings")) {
+    return "settings";
+  }
+  if (pathname.endsWith("/applications")) {
+    return "applications";
+  }
   return "main";
 }
 
+const PANE_TITLE: Partial<Record<AdminDetailPane, string>> = {
+  users: "Пользователи",
+  financing: "Условия финансирования",
+  documents: "Документы",
+  outlets: "Торговые точки",
+  settings: "Настройка контрагента",
+  applications: "Заявки",
+};
+
 export function AdminPartnerDetailPage() {
-  const { id } = useParams();
+  const { id, userId } = useParams();
   const location = useLocation();
   const { listPartners, setPartnerStatus, setPartnerManager, adminName } = useAuth();
   const [partner, setPartner] = useState<PublicPartner | null | undefined>(undefined);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [notesTick, setNotesTick] = useState(0);
+  const [profileTick, setProfileTick] = useState(0);
   const pane = paneFromPath(location.pathname);
 
   useEffect(() => {
@@ -65,14 +114,15 @@ export function AdminPartnerDetailPage() {
     };
   }, [id, listPartners]);
 
+  const directoryPath = location.pathname.startsWith("/admin/directory");
   const leasingApps = useMemo(() => {
-    if (!partner || !isDirectoryPartner(partner.status)) {
+    if (!partner || !showPartnerDirectoryCard(partner.status, location.pathname)) {
       return [];
     }
     return leasingForPartnerCard(partner.id, partner.companyName, partner.phone);
-  }, [partner]);
+  }, [location.pathname, partner]);
   const profile = useMemo(() => {
-    if (!partner || !isDirectoryPartner(partner.status)) {
+    if (!partner || !showPartnerDirectoryCard(partner.status, location.pathname)) {
       return null;
     }
     return getPartnerProfile({
@@ -83,7 +133,7 @@ export function AdminPartnerDetailPage() {
       email: partner.email,
       unp: partner.unp,
     });
-  }, [partner]);
+  }, [location.pathname, partner, profileTick]);
 
   if (!id) {
     return <Navigate to="/admin/partners" replace />;
@@ -102,11 +152,12 @@ export function AdminPartnerDetailPage() {
   }
 
   const current = partner;
-  const fromDirectory = location.pathname.startsWith("/admin/directory") || isDirectoryPartner(current.status);
+  const fromDirectory = directoryPath || isDirectoryPartner(current.status);
   const listHref = fromDirectory ? "/admin/directory" : "/admin/partners";
   const listLabel = fromDirectory ? "Партнеры" : "Заявки на регистрацию";
   const detailHref = fromDirectory ? `/admin/directory/${current.id}` : `/admin/partners/${current.id}`;
   const canReplaceDocuments = Boolean(current.responsibleManager);
+  const selectedUser = profile && userId ? findPartnerUser(profile, userId) : null;
   const directoryFields = profile
     ? [
         { label: "Организация", value: current.companyName },
@@ -191,13 +242,49 @@ export function AdminPartnerDetailPage() {
     }
   }
 
+  function saveSettings(settings: CounterpartySettings) {
+    if (!profile) {
+      return;
+    }
+    savePartnerProfile({ ...profile, settings, goodsSource: settings.goodsSource });
+    setProfileTick((value) => value + 1);
+  }
+
+  const overview = pane === "main";
+  const sectionContent =
+    profile && pane === "users" ? (
+      <PartnerUsersSection profile={profile} userHref={(user) => `${detailHref}/users/${user}`} />
+    ) : profile && pane === "financing" ? (
+      <PartnerFinancingSection profile={profile} />
+    ) : profile && pane === "outlets" ? (
+      <PartnerOutletsSection profile={profile} />
+    ) : profile && pane === "settings" ? (
+      <PartnerSettingsForm profile={profile} busy={busy} onSave={saveSettings} />
+    ) : profile && pane === "applications" ? (
+      <PartnerActivityPanel applications={leasingApps} showKpis={false} showChart={false} />
+    ) : null;
+
+  const crumbs: { label: string; to?: string }[] = [
+    { label: listLabel, to: listHref },
+    { label: current.companyName || (fromDirectory ? "Партнёр" : "Заявка"), to: pane === "main" ? undefined : detailHref },
+  ];
+  if (pane === "users" || pane === "user") {
+    crumbs.push({ label: "Пользователи", to: pane === "user" ? `${detailHref}/users` : undefined });
+  }
+  if (pane === "user") {
+    crumbs.push({ label: selectedUser?.fullName || "Пользователь" });
+  } else if (PANE_TITLE[pane] && pane !== "users") {
+    crumbs.push({ label: PANE_TITLE[pane] ?? "" });
+  }
+
   return (
     <AdminApplicationDetail
-      title={fromDirectory ? "Партнёр" : "Заявка на регистрацию партнера"}
-      crumbs={[
-        { label: listLabel, to: listHref },
-        { label: current.companyName || (fromDirectory ? "Партнёр" : "Заявка") },
-      ]}
+      title={
+        pane === "user"
+          ? selectedUser?.fullName || "Пользователь"
+          : PANE_TITLE[pane] || (fromDirectory ? "Партнёр" : "Заявка на регистрацию партнера")
+      }
+      crumbs={crumbs}
       status={current.status}
       manager={current.responsibleManager}
       history={current.history}
@@ -228,27 +315,32 @@ export function AdminPartnerDetailPage() {
       canReplaceDocuments={canReplaceDocuments}
       onReplaceDocument={(key, file) => void replaceDocument(key, file)}
       onAccept={() => void changeStatus("accepted")}
-      onApprove={() => void changeStatus("approved")}
+      onApprove={() => void changeStatus(partnerStatusAfterCardDecision(current.status, "approve"))}
       onReject={() => void changeStatus("rejected")}
-      onBlock={() => void changeStatus("blocked")}
+      onBlock={() => void changeStatus(partnerStatusAfterCardDecision(current.status, "block"))}
       onChangeManager={(name) => void changeManager(name)}
-      fields={directoryFields}
-      extraContent={profile ? <PartnerProfilePanel profile={profile} slot="before-docs" /> : null}
-      afterDocuments={
-        profile ? (
-          <>
-            <PartnerProfilePanel profile={profile} slot="after-docs" />
-            <section className="partner-activity-wrap" id="partner-applications">
-              <PartnerActivityPanel applications={leasingApps} />
-            </section>
-          </>
+      fields={
+        pane === "user" && selectedUser
+          ? [
+              { label: "ФИО", value: selectedUser.fullName },
+              { label: "Телефон", value: formatPhoneDisplay(selectedUser.phone) },
+              { label: "Роль", value: selectedUser.role },
+              { label: "Статус", value: PARTNER_USER_STATUS_LABEL[selectedUser.status], tone: selectedUser.status === "blocked" ? "blocked" : selectedUser.status === "activated" ? "active" : "accepted" },
+              { label: "Партнёр", value: current.companyName },
+            ]
+          : directoryFields
+      }
+      dashboards={
+        profile && overview ? (
+          <PartnerActivityPanel applications={leasingApps} showTable={false} />
         ) : null
       }
-      sectionNav={profile ? <PartnerCardNav /> : null}
-      factsTitle={profile ? "Общая информация" : undefined}
-      factsId={profile ? "partner-general" : undefined}
-      documentsTitle={profile ? "Документы" : undefined}
-      documentsId={profile ? "partner-docs" : undefined}
+      extraContent={sectionContent}
+      sectionNav={profile ? <PartnerCardNav baseHref={detailHref} /> : null}
+      factsTitle={profile && overview ? "Общая информация" : undefined}
+      showFacts={overview || pane === "user"}
+      showDocuments={overview && !profile ? true : pane === "documents"}
+      documentsTitle={pane === "documents" ? "" : profile ? "Документы" : "Приложенные документы"}
       documents={current.documents.map((item) => ({
         label: partnerDocumentLabel(item.key),
         fileName: item.fileName,

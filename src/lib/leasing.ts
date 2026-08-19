@@ -382,11 +382,14 @@ export function leasingForPartnerCard(
   if (!partnerId) {
     return [];
   }
-  const real = readAll().filter((item) => item.partnerId === partnerId);
+  const existing = readAll();
+  const real = existing.filter((item) => item.partnerId === partnerId);
   if (real.length > 0) {
     return real;
   }
-  return buildPartnerDemo(partnerId, companyName, phone);
+  const demo = buildPartnerDemo(partnerId, companyName, phone);
+  writeAll([...existing, ...demo]);
+  return demo;
 }
 
 export function listLocalLeasing(): LeasingApplication[] {
