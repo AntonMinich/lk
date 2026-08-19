@@ -18,7 +18,7 @@ import { partnerDocumentLabel, type PartnerDocumentKey } from "../lib/partner-do
 import { getPartnerFile, putStoredFile, savePartnerFiles } from "../lib/partner-files";
 import { countPartnerComments } from "../lib/partner-comments";
 import type { PublicPartner } from "../lib/api";
-import { isDirectoryPartner, STATUS_LABEL, type ApplicationStatus } from "../lib/status";
+import { isDirectoryPartner, partnerStatusAfterCardDecision, showPartnerDirectoryCard, STATUS_LABEL, type ApplicationStatus } from "../lib/status";
 
 function paneFromPath(pathname: string): AdminDetailPane {
   if (pathname.endsWith("/history")) {
@@ -65,14 +65,15 @@ export function AdminPartnerDetailPage() {
     };
   }, [id, listPartners]);
 
+  const directoryPath = location.pathname.startsWith("/admin/directory");
   const leasingApps = useMemo(() => {
-    if (!partner || !isDirectoryPartner(partner.status)) {
+    if (!partner || !showPartnerDirectoryCard(partner.status, location.pathname)) {
       return [];
     }
     return leasingForPartnerCard(partner.id, partner.companyName, partner.phone);
-  }, [partner]);
+  }, [location.pathname, partner]);
   const profile = useMemo(() => {
-    if (!partner || !isDirectoryPartner(partner.status)) {
+    if (!partner || !showPartnerDirectoryCard(partner.status, location.pathname)) {
       return null;
     }
     return getPartnerProfile({
@@ -83,7 +84,7 @@ export function AdminPartnerDetailPage() {
       email: partner.email,
       unp: partner.unp,
     });
-  }, [partner]);
+  }, [location.pathname, partner]);
 
   if (!id) {
     return <Navigate to="/admin/partners" replace />;
@@ -102,7 +103,7 @@ export function AdminPartnerDetailPage() {
   }
 
   const current = partner;
-  const fromDirectory = location.pathname.startsWith("/admin/directory") || isDirectoryPartner(current.status);
+  const fromDirectory = directoryPath || isDirectoryPartner(current.status);
   const listHref = fromDirectory ? "/admin/directory" : "/admin/partners";
   const listLabel = fromDirectory ? "Партнеры" : "Заявки на регистрацию";
   const detailHref = fromDirectory ? `/admin/directory/${current.id}` : `/admin/partners/${current.id}`;
@@ -228,9 +229,9 @@ export function AdminPartnerDetailPage() {
       canReplaceDocuments={canReplaceDocuments}
       onReplaceDocument={(key, file) => void replaceDocument(key, file)}
       onAccept={() => void changeStatus("accepted")}
-      onApprove={() => void changeStatus("approved")}
+      onApprove={() => void changeStatus(partnerStatusAfterCardDecision(current.status, "approve"))}
       onReject={() => void changeStatus("rejected")}
-      onBlock={() => void changeStatus("blocked")}
+      onBlock={() => void changeStatus(partnerStatusAfterCardDecision(current.status, "block"))}
       onChangeManager={(name) => void changeManager(name)}
       fields={directoryFields}
       extraContent={profile ? <PartnerProfilePanel profile={profile} slot="before-docs" /> : null}

@@ -387,12 +387,13 @@ export function AdminApplicationDetail({
                 {typeof item.count === "number" ? ` (${item.count})` : ""}
               </Link>
             ))}
-            {pane !== "main" ? (
-              <Link to={backHref} className="admin-actions__link">
-                {backLabel}
-              </Link>
-            ) : null}
           </nav>
+          {pane !== "main" ? (
+            <Link to={backHref} className="admin-actions__back">
+              <span aria-hidden="true">←</span>
+              {backLabel}
+            </Link>
+          ) : null}
         </div>
       </aside>
     </div>
