@@ -11,6 +11,7 @@ import { AdminPartnerDirectoryPage } from "./pages/AdminPartnerDirectoryPage";
 import { AdminPartnerDetailPage } from "./pages/AdminPartnerDetailPage";
 import { AdminPartnerListPage } from "./pages/AdminPartnerListPage";
 import { AdminProfilePage } from "./pages/AdminProfilePage";
+import { AdminUsersPage } from "./pages/AdminUsersPage";
 import { CabinetApplicationDetailPage } from "./pages/CabinetApplicationDetailPage";
 import { CabinetCalculatorPage } from "./pages/CabinetCalculatorPage";
 import { CabinetDealsPage } from "./pages/CabinetDealsPage";
@@ -49,6 +50,14 @@ export default function App() {
           <Route path="/admin/directory/:id/history" element={<AdminPartnerDetailPage />} />
           <Route path="/admin/directory/:id/archive" element={<AdminPartnerDetailPage />} />
           <Route path="/admin/directory/:id/comments" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/directory/:id/users" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/directory/:id/users/:userId" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/directory/:id/financing" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/directory/:id/documents" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/directory/:id/outlets" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/directory/:id/settings" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/directory/:id/applications" element={<AdminPartnerDetailPage />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/leasing" element={<AdminLeasingListPage />} />
           <Route path="/admin/leasing/:id" element={<AdminLeasingDetailPage />} />
           <Route path="/admin/leasing/:id/history" element={<AdminLeasingDetailPage />} />

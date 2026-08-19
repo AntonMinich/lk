@@ -1,8 +1,11 @@
 import {
   filterPartnerUsers,
+  findPartnerUser,
   goodsSourceLabel,
   isPartnerProfile,
   matchesPartnerUserFilter,
+  partnerCardSectionHref,
+  savePartnerProfile,
   seedPartnerProfile,
   shiftPartnerPhone,
 } from "./partner-profile.ts";
@@ -46,5 +49,40 @@ assertEqual(filterPartnerUsers(profile.users, "all").length, 2, "all users");
 
 assertEqual(shiftPartnerPhone("+375291112233", 17), "+375291112250", "shifted phone");
 assertEqual(shiftPartnerPhone("bad", 3), "bad", "invalid phone stays");
+assertEqual(partnerCardSectionHref("/admin/directory/1", ""), "/admin/directory/1", "overview href");
+assertEqual(partnerCardSectionHref("/admin/directory/1", "settings"), "/admin/directory/1/settings", "settings href");
+assertEqual(findPartnerUser(profile, `${partner.id}-user-admin`)?.role, "Администратор", "find admin user");
+
+const memory = new Map<string, string>();
+Object.defineProperty(globalThis, "localStorage", {
+  value: {
+    get length() {
+      return memory.size;
+    },
+    clear() {
+      memory.clear();
+    },
+    getItem(key: string) {
+      return memory.get(key) ?? null;
+    },
+    key(index: number) {
+      return [...memory.keys()][index] ?? null;
+    },
+    removeItem(key: string) {
+      memory.delete(key);
+    },
+    setItem(key: string, value: string) {
+      memory.set(key, String(value));
+    },
+  } satisfies Storage,
+  configurable: true,
+});
+
+const saved = savePartnerProfile({
+  ...profile,
+  settings: { ...profile.settings, goodsSource: "file", comment: "Файл прайса" },
+});
+assertEqual(saved.goodsSource, "file", "save syncs goods source");
+assertEqual(saved.settings.comment, "Файл прайса", "save comment");
 
 console.log("partner-profile checks passed");

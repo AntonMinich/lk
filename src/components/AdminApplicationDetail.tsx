@@ -21,7 +21,18 @@ export type AdminDocumentItem = {
   phone?: string;
 };
 
-export type AdminDetailPane = "main" | "history" | "archive" | "comments";
+export type AdminDetailPane =
+  | "main"
+  | "history"
+  | "archive"
+  | "comments"
+  | "users"
+  | "user"
+  | "financing"
+  | "documents"
+  | "outlets"
+  | "settings"
+  | "applications";
 
 export type AdminDetailLink = {
   to: string;
@@ -37,11 +48,14 @@ type AdminApplicationDetailProps = {
   documents?: AdminDocumentItem[];
   extraContent?: ReactNode;
   afterDocuments?: ReactNode;
+  dashboards?: ReactNode;
   sectionNav?: ReactNode;
   factsTitle?: string;
   factsId?: string;
   documentsTitle?: string;
   documentsId?: string;
+  showFacts?: boolean;
+  showDocuments?: boolean;
   status: string;
   statusLabel?: string;
   manager: string;
@@ -126,11 +140,14 @@ export function AdminApplicationDetail({
   documents,
   extraContent,
   afterDocuments,
+  dashboards,
   sectionNav,
   factsTitle,
   factsId,
   documentsTitle = "Приложенные документы",
   documentsId,
+  showFacts = true,
+  showDocuments = true,
   status,
   statusLabel,
   manager,
@@ -209,7 +226,8 @@ export function AdminApplicationDetail({
           : title;
 
   return (
-    <div className="admin-detail">
+    <div className={`admin-detail${sectionNav ? " admin-detail--with-tabs" : ""}`}>
+      {sectionNav}
       <section className="admin-detail__form">
         {crumbs && crumbs.length > 0 ? (
           <nav className="breadcrumbs">
@@ -262,19 +280,21 @@ export function AdminApplicationDetail({
           commentsContent
         ) : (
           <>
-            {sectionNav}
-            <section className="admin-facts-block" id={factsId}>
-              {factsTitle ? <h2>{factsTitle}</h2> : null}
-              <div className="admin-facts">
-                {fields.map((field) => (
-                  <Fact key={field.label} {...field} />
-                ))}
-              </div>
-            </section>
+            {dashboards}
+            {showFacts ? (
+              <section className="admin-facts-block" id={factsId}>
+                {factsTitle ? <h2>{factsTitle}</h2> : null}
+                <div className="admin-facts">
+                  {fields.map((field) => (
+                    <Fact key={field.label} {...field} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
             {extraContent}
-            {documents ? (
+            {showDocuments && documents ? (
               <div className="admin-docs" id={documentsId}>
-                <h2>{documentsTitle}</h2>
+                {documentsTitle ? <h2>{documentsTitle}</h2> : null}
                 {documents.length === 0 ? (
                   <p className="admin-docs__empty">Документы не загружены</p>
                 ) : (
@@ -320,57 +340,65 @@ export function AdminApplicationDetail({
       </section>
       <aside className="admin-actions">
         <div className="admin-actions__sticky">
+          {pane !== "main" ? (
+            <Link to={backHref} className="admin-actions__back">
+              <span aria-hidden="true">←</span>
+              {backLabel}
+            </Link>
+          ) : null}
           <div className={`admin-status admin-status--${status}`}>
             <p className="admin-actions__title">Статус</p>
             <span className={`status-pill status-pill--${status}`}>{resolvedStatusLabel}</span>
           </div>
-          <p className="admin-actions__title">Ответственный менеджер</p>
-          <p className="admin-actions__manager">{manager || "Не назначен"}</p>
-          {canChangeManager ? (
-            editingManager ? (
-              <form className="admin-actions__form" onSubmit={handleManagerSubmit}>
-                <label className="admin-actions__select-label" htmlFor="manager-select">
-                  Менеджер
-                </label>
-                <select
-                  id="manager-select"
-                  value={managerDraft}
-                  onChange={(event) => setManagerDraft(event.target.value)}
-                >
-                  {MANAGERS.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-                <button type="submit" className="action-btn action-btn--approve" disabled={busy}>
-                  Сохранить
-                </button>
+          <div className="admin-manager">
+            <p className="admin-actions__title">Ответственный менеджер</p>
+            <p className="admin-actions__manager">{manager || "Не назначен"}</p>
+            {canChangeManager ? (
+              editingManager ? (
+                <form className="admin-actions__form" onSubmit={handleManagerSubmit}>
+                  <label className="admin-actions__select-label" htmlFor="manager-select">
+                    Менеджер
+                  </label>
+                  <select
+                    id="manager-select"
+                    value={managerDraft}
+                    onChange={(event) => setManagerDraft(event.target.value)}
+                  >
+                    {MANAGERS.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                  <button type="submit" className="action-btn action-btn--approve" disabled={busy}>
+                    Сохранить
+                  </button>
+                  <button
+                    type="button"
+                    className="action-btn action-btn--ghost"
+                    onClick={() => {
+                      setEditingManager(false);
+                      setManagerDraft(defaultManager);
+                    }}
+                  >
+                    Отмена
+                  </button>
+                </form>
+              ) : (
                 <button
                   type="button"
                   className="action-btn action-btn--ghost"
+                  disabled={busy}
                   onClick={() => {
-                    setEditingManager(false);
                     setManagerDraft(defaultManager);
+                    setEditingManager(true);
                   }}
                 >
-                  Отмена
+                  Сменить менеджера
                 </button>
-              </form>
-            ) : (
-              <button
-                type="button"
-                className="action-btn action-btn--ghost"
-                disabled={busy}
-                onClick={() => {
-                  setManagerDraft(defaultManager);
-                  setEditingManager(true);
-                }}
-              >
-                Сменить менеджера
-              </button>
-            )
-          ) : null}
+              )
+            ) : null}
+          </div>
           <p className="admin-actions__title">Решение</p>
           {actions}
           <nav className="admin-actions__nav" aria-label="Разделы заявки">
@@ -388,12 +416,6 @@ export function AdminApplicationDetail({
               </Link>
             ))}
           </nav>
-          {pane !== "main" ? (
-            <Link to={backHref} className="admin-actions__back">
-              <span aria-hidden="true">←</span>
-              {backLabel}
-            </Link>
-          ) : null}
         </div>
       </aside>
     </div>
