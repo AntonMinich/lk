@@ -319,79 +319,81 @@ export function AdminApplicationDetail({
         )}
       </section>
       <aside className="admin-actions">
-        <div className={`admin-status admin-status--${status}`}>
-          <p className="admin-actions__title">Статус</p>
-          <span className={`status-pill status-pill--${status}`}>{resolvedStatusLabel}</span>
-        </div>
-        <p className="admin-actions__title">Ответственный менеджер</p>
-        <p className="admin-actions__manager">{manager || "Не назначен"}</p>
-        {canChangeManager ? (
-          editingManager ? (
-            <form className="admin-actions__form" onSubmit={handleManagerSubmit}>
-              <label className="admin-actions__select-label" htmlFor="manager-select">
-                Менеджер
-              </label>
-              <select
-                id="manager-select"
-                value={managerDraft}
-                onChange={(event) => setManagerDraft(event.target.value)}
-              >
-                {MANAGERS.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-              <button type="submit" className="action-btn action-btn--approve" disabled={busy}>
-                Сохранить
-              </button>
+        <div className="admin-actions__sticky">
+          <div className={`admin-status admin-status--${status}`}>
+            <p className="admin-actions__title">Статус</p>
+            <span className={`status-pill status-pill--${status}`}>{resolvedStatusLabel}</span>
+          </div>
+          <p className="admin-actions__title">Ответственный менеджер</p>
+          <p className="admin-actions__manager">{manager || "Не назначен"}</p>
+          {canChangeManager ? (
+            editingManager ? (
+              <form className="admin-actions__form" onSubmit={handleManagerSubmit}>
+                <label className="admin-actions__select-label" htmlFor="manager-select">
+                  Менеджер
+                </label>
+                <select
+                  id="manager-select"
+                  value={managerDraft}
+                  onChange={(event) => setManagerDraft(event.target.value)}
+                >
+                  {MANAGERS.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+                <button type="submit" className="action-btn action-btn--approve" disabled={busy}>
+                  Сохранить
+                </button>
+                <button
+                  type="button"
+                  className="action-btn action-btn--ghost"
+                  onClick={() => {
+                    setEditingManager(false);
+                    setManagerDraft(defaultManager);
+                  }}
+                >
+                  Отмена
+                </button>
+              </form>
+            ) : (
               <button
                 type="button"
                 className="action-btn action-btn--ghost"
+                disabled={busy}
                 onClick={() => {
-                  setEditingManager(false);
                   setManagerDraft(defaultManager);
+                  setEditingManager(true);
                 }}
               >
-                Отмена
+                Сменить менеджера
               </button>
-            </form>
-          ) : (
-            <button
-              type="button"
-              className="action-btn action-btn--ghost"
-              disabled={busy}
-              onClick={() => {
-                setManagerDraft(defaultManager);
-                setEditingManager(true);
-              }}
-            >
-              Сменить менеджера
-            </button>
-          )
-        ) : null}
-        <p className="admin-actions__title">Решение</p>
-        {actions}
-        <nav className="admin-actions__nav" aria-label="Разделы заявки">
-          <Link to={historyHref} className={`admin-actions__link${pane === "history" ? " is-active" : ""}`}>
-            История ({history.length})
-          </Link>
-          {extraLinks?.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={`admin-actions__link${item.active ? " is-active" : ""}`}
-            >
-              {item.label}
-              {typeof item.count === "number" ? ` (${item.count})` : ""}
-            </Link>
-          ))}
-          {pane !== "main" ? (
-            <Link to={backHref} className="admin-actions__link">
-              {backLabel}
-            </Link>
+            )
           ) : null}
-        </nav>
+          <p className="admin-actions__title">Решение</p>
+          {actions}
+          <nav className="admin-actions__nav" aria-label="Разделы заявки">
+            <Link to={historyHref} className={`admin-actions__link${pane === "history" ? " is-active" : ""}`}>
+              История ({history.length})
+            </Link>
+            {extraLinks?.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`admin-actions__link${item.active ? " is-active" : ""}`}
+              >
+                {item.label}
+                {typeof item.count === "number" ? ` (${item.count})` : ""}
+              </Link>
+            ))}
+            {pane !== "main" ? (
+              <Link to={backHref} className="admin-actions__link">
+                {backLabel}
+              </Link>
+            ) : null}
+          </nav>
+        </div>
       </aside>
     </div>
   );
