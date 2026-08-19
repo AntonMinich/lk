@@ -95,7 +95,11 @@ export function AdminLeasingDetailPage() {
       title={title}
       crumbs={[
         { label: listLabel, to: listHref },
-        { label: formatLeasingApplicationNo(current.seq, current.createdAt) },
+        {
+          label: formatLeasingApplicationNo(current.seq, current.createdAt),
+          to: showHistory ? detailHref : undefined,
+        },
+        ...(showHistory ? [{ label: "История" }] : []),
       ]}
       status={current.status}
       statusLabel={LEASING_STATUS_LABEL[current.status]}
