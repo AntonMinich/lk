@@ -95,7 +95,7 @@ export function PartnerActivityPanel({ applications }: PartnerActivityPanelProps
       </section>
 
       <section className="partner-apps">
-        <h2>Заявки партнёра</h2>
+        <h2>Заявки</h2>
         <div className="history-table-wrap">
           <table className="history-table">
             <thead>

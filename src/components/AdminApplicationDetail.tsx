@@ -10,6 +10,7 @@ import type { PartnerDocumentKey } from "../lib/partner-docs";
 export type AdminFormField = {
   label: string;
   value: string;
+  tone?: string;
 };
 
 export type AdminDocumentItem = {
@@ -35,6 +36,12 @@ type AdminApplicationDetailProps = {
   fields: AdminFormField[];
   documents?: AdminDocumentItem[];
   extraContent?: ReactNode;
+  afterDocuments?: ReactNode;
+  sectionNav?: ReactNode;
+  factsTitle?: string;
+  factsId?: string;
+  documentsTitle?: string;
+  documentsId?: string;
   status: string;
   statusLabel?: string;
   manager: string;
@@ -59,11 +66,15 @@ type AdminApplicationDetailProps = {
   commentsContent?: ReactNode;
 };
 
-function Fact({ label, value }: AdminFormField) {
+function Fact({ label, value, tone }: AdminFormField) {
   return (
     <div className="admin-fact">
       <span className="admin-fact__label">{label}</span>
-      <span className="admin-fact__value">{value || "—"}</span>
+      {tone ? (
+        <span className={`status-pill status-pill--${tone}`}>{value || "—"}</span>
+      ) : (
+        <span className="admin-fact__value">{value || "—"}</span>
+      )}
     </div>
   );
 }
@@ -114,6 +125,12 @@ export function AdminApplicationDetail({
   fields,
   documents,
   extraContent,
+  afterDocuments,
+  sectionNav,
+  factsTitle,
+  factsId,
+  documentsTitle = "Приложенные документы",
+  documentsId,
   status,
   statusLabel,
   manager,
@@ -245,15 +262,19 @@ export function AdminApplicationDetail({
           commentsContent
         ) : (
           <>
-            <div className="admin-facts">
-              {fields.map((field) => (
-                <Fact key={field.label} {...field} />
-              ))}
-            </div>
+            {sectionNav}
+            <section className="admin-facts-block" id={factsId}>
+              {factsTitle ? <h2>{factsTitle}</h2> : null}
+              <div className="admin-facts">
+                {fields.map((field) => (
+                  <Fact key={field.label} {...field} />
+                ))}
+              </div>
+            </section>
             {extraContent}
             {documents ? (
-              <div className="admin-docs">
-                <h2>Приложенные документы</h2>
+              <div className="admin-docs" id={documentsId}>
+                <h2>{documentsTitle}</h2>
                 {documents.length === 0 ? (
                   <p className="admin-docs__empty">Документы не загружены</p>
                 ) : (
@@ -293,6 +314,7 @@ export function AdminApplicationDetail({
                 )}
               </div>
             ) : null}
+            {afterDocuments}
           </>
         )}
       </section>
