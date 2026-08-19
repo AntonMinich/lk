@@ -2120,6 +2120,30 @@ input {
   background: var(--brand-light);
 }
 
+.admin-actions__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--brand);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--brand-dark);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.admin-actions__back:hover {
+  background: var(--brand-light);
+  color: var(--brand-dark);
+  text-decoration: none;
+}
+
 .action-btn--ghost {
   border: 1px solid var(--line);
   background: var(--white);

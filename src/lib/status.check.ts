@@ -4,6 +4,8 @@ import {
   isRegistrationQueue,
   loginBlockedMessage,
   matchesApplicationFilter,
+  partnerStatusAfterCardDecision,
+  showPartnerDirectoryCard,
   STATUS_LABEL,
 } from "./status.ts";
 
@@ -24,6 +26,11 @@ assertEqual(isRegistrationQueue("active"), false, "active leaves queue");
 assertEqual(isDirectoryPartner("active"), true, "active is a partner");
 assertEqual(isDirectoryPartner("blocked"), true, "blocked stays in directory");
 assertEqual(isRegistrationQueue("blocked"), false, "blocked leaves registration queue");
+assertEqual(showPartnerDirectoryCard("approved", "/admin/directory/1"), true, "directory path keeps card");
+assertEqual(showPartnerDirectoryCard("approved", "/admin/partners/1"), false, "queue card stays thin");
+assertEqual(partnerStatusAfterCardDecision("blocked", "approve"), "active", "unblock returns to active");
+assertEqual(partnerStatusAfterCardDecision("active", "block"), "blocked", "block from active");
+assertEqual(partnerStatusAfterCardDecision("accepted", "approve"), "approved", "approve from review");
 assertEqual(loginBlockedMessage("approved"), null, "approved can log in");
 assertEqual(loginBlockedMessage("active"), null, "active can log in");
 assertEqual(Boolean(loginBlockedMessage("pending")), true, "pending blocked");
