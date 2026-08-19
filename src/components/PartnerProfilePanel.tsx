@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   filterPartnerUsers,
-  goodsSourceLabel,
   OUTLET_STATUS_LABEL,
   PARTNER_USER_FILTERS,
   PARTNER_USER_STATUS_LABEL,
@@ -10,11 +10,6 @@ import {
   type PartnerUserFilterKey,
 } from "../lib/partner-profile";
 import { formatPhoneDisplay } from "../lib/phone";
-
-type PartnerProfilePanelProps = {
-  profile: PartnerProfile;
-  slot: "before-docs" | "after-docs";
-};
 
 function Fact({ label, value }: { label: string; value: string }) {
   return (
@@ -25,12 +20,19 @@ function Fact({ label, value }: { label: string; value: string }) {
   );
 }
 
-function UsersSection({ profile }: { profile: PartnerProfile }) {
+export function PartnerUsersSection({
+  profile,
+  userHref,
+}: {
+  profile: PartnerProfile;
+  userHref: (userId: string) => string;
+}) {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<PartnerUserFilterKey>("all");
   const rows = useMemo(() => filterPartnerUsers(profile.users, filter), [filter, profile.users]);
 
   return (
-    <section className="partner-profile-section" id="partner-users">
+    <section className="partner-profile-section">
       <div className="partner-profile-section__head">
         <h2>Пользователи</h2>
         <label className="partner-profile-filter">
@@ -61,7 +63,18 @@ function UsersSection({ profile }: { profile: PartnerProfile }) {
               </tr>
             ) : (
               rows.map((item) => (
-                <tr key={item.id}>
+                <tr
+                  key={item.id}
+                  className="admin-table__row--click"
+                  tabIndex={0}
+                  onClick={() => navigate(userHref(item.id))}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      navigate(userHref(item.id));
+                    }
+                  }}
+                >
                   <td data-label="ФИО">{item.fullName}</td>
                   <td data-label="Телефон">{formatPhoneDisplay(item.phone)}</td>
                   <td data-label="Роль">{item.role}</td>
@@ -80,10 +93,10 @@ function UsersSection({ profile }: { profile: PartnerProfile }) {
   );
 }
 
-function FinancingSection({ profile }: { profile: PartnerProfile }) {
+export function PartnerFinancingSection({ profile }: { profile: PartnerProfile }) {
   const terms = profile.financing;
   return (
-    <section className="partner-profile-section" id="partner-financing">
+    <section className="partner-profile-section">
       <h2>Условия финансирования</h2>
       <div className="admin-facts">
         <Fact label="Минимальный аванс" value={terms.advanceMin} />
@@ -98,9 +111,9 @@ function FinancingSection({ profile }: { profile: PartnerProfile }) {
   );
 }
 
-function OutletsSection({ profile }: { profile: PartnerProfile }) {
+export function PartnerOutletsSection({ profile }: { profile: PartnerProfile }) {
   return (
-    <section className="partner-profile-section" id="partner-outlets">
+    <section className="partner-profile-section">
       <h2>Торговые точки</h2>
       <div className="history-table-wrap">
         <table className="history-table">
@@ -137,41 +150,5 @@ function OutletsSection({ profile }: { profile: PartnerProfile }) {
         </table>
       </div>
     </section>
-  );
-}
-
-function SettingsSection({ profile }: { profile: PartnerProfile }) {
-  const settings = profile.settings;
-  return (
-    <section className="partner-profile-section" id="partner-settings">
-      <h2>Настройка контрагента</h2>
-      <div className="admin-facts">
-        <Fact label="Источник товаров" value={goodsSourceLabel(settings.goodsSource)} />
-        <Fact label="Создание заявок" value={settings.canCreateApplications ? "Разрешено" : "Запрещено"} />
-        <Fact label="Email уведомлений" value={settings.notifyEmail} />
-        <Fact label="Автоотправка предложений" value={settings.autoSendOffers ? "Включена" : "Выключена"} />
-        <Fact label="Код интеграции" value={settings.integrationCode} />
-        <Fact label="Синхронизация остатков" value={settings.stockSync ? "Включена" : "Выключена"} />
-        <Fact label="Комментарий" value={settings.comment} />
-      </div>
-    </section>
-  );
-}
-
-export function PartnerProfilePanel({ profile, slot }: PartnerProfilePanelProps) {
-  if (slot === "before-docs") {
-    return (
-      <>
-        <UsersSection profile={profile} />
-        <FinancingSection profile={profile} />
-      </>
-    );
-  }
-
-  return (
-    <>
-      <OutletsSection profile={profile} />
-      <SettingsSection profile={profile} />
-    </>
   );
 }

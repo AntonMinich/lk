@@ -597,6 +597,8 @@ input {
 }
 
 .field input,
+.field select,
+.field textarea,
 .phone-input,
 .password-input {
   width: 100%;
@@ -606,10 +608,24 @@ input {
   background: var(--white);
 }
 
-.field input {
+.field input,
+.field select {
   padding: 0 14px;
   outline: none;
   color: var(--ink);
+}
+
+.field textarea {
+  padding: 10px 14px;
+  min-height: 88px;
+  resize: vertical;
+  outline: none;
+  color: var(--ink);
+  font: inherit;
+}
+
+.field select {
+  min-height: 40px;
 }
 
 .field input::placeholder {
@@ -617,6 +633,8 @@ input {
 }
 
 .field input:focus,
+.field select:focus,
+.field textarea:focus,
 .phone-input:focus-within,
 .password-input:focus-within {
   border-color: var(--brand);
@@ -1672,6 +1690,10 @@ input {
   background: var(--white);
 }
 
+.admin-detail--with-tabs {
+  grid-template-columns: 214px minmax(0, 1fr) 260px;
+}
+
 .admin-detail__form {
   padding: 24px 28px 28px;
   min-width: 0;
@@ -1765,28 +1787,83 @@ input {
 }
 
 .partner-card-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 4px 0 20px;
+  display: none;
 }
 
-.partner-card-nav__btn {
-  min-height: 32px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
+.partner-tabs {
+  border-right: 1px solid var(--line);
+  background: #f8fafc;
+}
+
+.partner-tabs__sticky {
+  position: sticky;
+  top: 16px;
+  z-index: 2;
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: 16px 10px;
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.partner-tabs__title {
+  margin: 0 8px 8px;
   color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.partner-tabs__link {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #475569;
   font-size: 13px;
   font-weight: 600;
-  cursor: pointer;
+  line-height: 1.35;
+  text-decoration: none;
 }
 
-.partner-card-nav__btn:hover,
-.partner-card-nav__btn:focus-visible {
+.partner-tabs__link:hover {
+  background: var(--white);
+  color: var(--brand-dark);
+}
+
+.partner-tabs__link.is-active {
   background: var(--brand-light);
   color: var(--brand-dark);
+}
+
+.partner-activity + .admin-facts-block,
+.partner-activity + .partner-profile-section {
+  margin-top: 24px;
+}
+
+.admin-detail__form > .partner-profile-section,
+.admin-detail__form > .partner-settings,
+.admin-detail__form > .partner-activity {
+  margin-top: 0;
+}
+
+.partner-settings {
+  display: grid;
+  gap: 16px;
+}
+
+.partner-settings .primary-btn {
+  justify-self: start;
+  margin-top: 0;
+}
+
+.partner-settings__ok {
+  margin: 0;
+  color: var(--ok);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .admin-fact .status-pill {
@@ -1935,6 +2012,26 @@ input {
   max-height: calc(100vh - 32px);
   overflow: auto;
   overscroll-behavior: contain;
+}
+
+.admin-manager {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--brand);
+  border-radius: 12px;
+  background: var(--white);
+  box-shadow: inset 0 0 0 1px rgb(15 118 110 / 12%);
+}
+
+.admin-manager .admin-actions__title {
+  margin: 0;
+  color: var(--brand-dark);
+}
+
+.admin-manager .admin-actions__manager {
+  margin: 0;
+  font-size: 14px;
 }
 
 .admin-status {
@@ -2126,21 +2223,21 @@ input {
   justify-content: center;
   gap: 8px;
   width: 100%;
-  margin-top: 8px;
-  min-height: 36px;
+  min-height: 40px;
   padding: 0 12px;
-  border: 1px solid var(--brand);
+  border: 0;
   border-radius: 8px;
-  background: var(--white);
-  color: var(--brand-dark);
+  background: var(--brand);
+  color: var(--white);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
+  box-shadow: var(--shadow);
 }
 
 .admin-actions__back:hover {
-  background: var(--brand-light);
-  color: var(--brand-dark);
+  background: var(--brand-dark);
+  color: var(--white);
   text-decoration: none;
 }
 
@@ -2238,8 +2335,33 @@ input {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .admin-detail {
+  .admin-detail,
+  .admin-detail--with-tabs {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .partner-tabs {
+    order: -2;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .partner-tabs__sticky {
+    position: static;
+    max-height: none;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow: auto;
+  }
+
+  .partner-tabs__title {
+    display: none;
+  }
+
+  .partner-tabs__link {
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
 
   .admin-actions {

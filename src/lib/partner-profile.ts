@@ -93,14 +93,20 @@ export const PARTNER_USER_FILTERS: { key: PartnerUserFilterKey; label: string }[
 ];
 
 export const PARTNER_CARD_SECTIONS = [
-  { id: "partner-general", label: "Общая информация" },
-  { id: "partner-users", label: "Пользователи" },
-  { id: "partner-financing", label: "Условия финансирования" },
-  { id: "partner-docs", label: "Документы" },
-  { id: "partner-outlets", label: "Торговые точки" },
-  { id: "partner-settings", label: "Настройка контрагента" },
-  { id: "partner-applications", label: "Заявки" },
+  { key: "overview", path: "", label: "Общая информация" },
+  { key: "users", path: "users", label: "Пользователи" },
+  { key: "financing", path: "financing", label: "Условия финансирования" },
+  { key: "docs", path: "documents", label: "Документы" },
+  { key: "outlets", path: "outlets", label: "Торговые точки" },
+  { key: "settings", path: "settings", label: "Настройка контрагента" },
+  { key: "applications", path: "applications", label: "Заявки" },
 ] as const;
+
+export type PartnerCardSectionKey = (typeof PARTNER_CARD_SECTIONS)[number]["key"];
+
+export function partnerCardSectionHref(baseHref: string, path: string): string {
+  return path ? `${baseHref}/${path}` : baseHref;
+}
 
 export function isPartnerUserStatus(value: string): value is PartnerUserStatus {
   return value === "activated" || value === "invited" || value === "blocked";
@@ -277,4 +283,35 @@ export function getPartnerProfile(partner: PartnerProfileSeed): PartnerProfile {
   all[partner.id] = seeded;
   writeAll(all);
   return seeded;
+}
+
+export function savePartnerProfile(profile: PartnerProfile): PartnerProfile {
+  const all = readAll();
+  const next: PartnerProfile = {
+    ...profile,
+    goodsSource: profile.settings.goodsSource,
+  };
+  all[next.partnerId] = next;
+  writeAll(all);
+  return next;
+}
+
+export function findPartnerUser(profile: PartnerProfile, userId: string): PartnerUser | null {
+  return profile.users.find((item) => item.id === userId) ?? null;
+}
+
+export type DirectoryUserRow = PartnerUser & {
+  partnerId: string;
+  companyName: string;
+};
+
+export function listDirectoryUsers(partners: PartnerProfileSeed[]): DirectoryUserRow[] {
+  return partners.flatMap((partner) => {
+    const profile = getPartnerProfile(partner);
+    return profile.users.map((user) => ({
+      ...user,
+      partnerId: partner.id,
+      companyName: partner.companyName,
+    }));
+  });
 }
