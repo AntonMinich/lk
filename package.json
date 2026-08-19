@@ -20,6 +20,7 @@
     "check:money": "node --experimental-strip-types src/lib/money.check.ts",
     "check:insights": "node --experimental-strip-types src/lib/partner-insights.check.ts",
     "check:archive": "node --experimental-strip-types src/lib/document-archive.check.ts",
+    "check:profile": "node --experimental-strip-types src/lib/partner-profile.check.ts",
     "check:api": "tsx server/api.check.ts"
   },
   "dependencies": {

@@ -3,19 +3,22 @@ import { Navigate, useLocation, useParams } from "react-router-dom";
 import { AdminApplicationDetail, type AdminDetailPane } from "../components/AdminApplicationDetail";
 import { DocumentArchivePane } from "../components/DocumentArchivePane";
 import { PartnerActivityPanel } from "../components/PartnerActivityPanel";
+import { PartnerCardNav } from "../components/PartnerCardNav";
 import { PartnerCommentsPane } from "../components/PartnerCommentsPane";
+import { PartnerProfilePanel } from "../components/PartnerProfilePanel";
 import { useAuth } from "../lib/auth";
 import { formatPartnerApplicationNo } from "../lib/application-no";
 import { addArchivedDocument, countArchivedDocuments } from "../lib/document-archive";
-import { formatDateTime } from "../lib/format";
+import { formatDate, formatDateTime } from "../lib/format";
 import { leasingForPartnerCard } from "../lib/leasing";
 import { replaceLocalPartnerDocument } from "../lib/local-partners";
+import { getPartnerProfile, goodsSourceLabel } from "../lib/partner-profile";
 import { formatPhoneDisplay } from "../lib/phone";
 import { partnerDocumentLabel, type PartnerDocumentKey } from "../lib/partner-docs";
 import { getPartnerFile, putStoredFile, savePartnerFiles } from "../lib/partner-files";
 import { countPartnerComments } from "../lib/partner-comments";
 import type { PublicPartner } from "../lib/api";
-import { isDirectoryPartner, type ApplicationStatus } from "../lib/status";
+import { isDirectoryPartner, STATUS_LABEL, type ApplicationStatus } from "../lib/status";
 
 function paneFromPath(pathname: string): AdminDetailPane {
   if (pathname.endsWith("/history")) {
@@ -68,6 +71,19 @@ export function AdminPartnerDetailPage() {
     }
     return leasingForPartnerCard(partner.id, partner.companyName, partner.phone);
   }, [partner]);
+  const profile = useMemo(() => {
+    if (!partner || !isDirectoryPartner(partner.status)) {
+      return null;
+    }
+    return getPartnerProfile({
+      id: partner.id,
+      companyName: partner.companyName,
+      contactName: partner.contactName,
+      phone: partner.phone,
+      email: partner.email,
+      unp: partner.unp,
+    });
+  }, [partner]);
 
   if (!id) {
     return <Navigate to="/admin/partners" replace />;
@@ -91,6 +107,26 @@ export function AdminPartnerDetailPage() {
   const listLabel = fromDirectory ? "Партнеры" : "Заявки на регистрацию";
   const detailHref = fromDirectory ? `/admin/directory/${current.id}` : `/admin/partners/${current.id}`;
   const canReplaceDocuments = Boolean(current.responsibleManager);
+  const directoryFields = profile
+    ? [
+        { label: "Организация", value: current.companyName },
+        { label: "УНП", value: current.unp },
+        { label: "Контактное лицо", value: current.contactName },
+        { label: "Email", value: current.email },
+        { label: "Телефон", value: formatPhoneDisplay(current.phone) },
+        { label: "Статус", value: STATUS_LABEL[current.status], tone: current.status },
+        { label: "Дата регистрации", value: formatDate(current.createdAt) },
+        { label: "Источник товаров", value: goodsSourceLabel(profile.goodsSource) },
+      ]
+    : [
+        { label: "ID", value: formatPartnerApplicationNo(current.seq) },
+        { label: "Наименование юридического лица", value: current.companyName },
+        { label: "УНП", value: current.unp },
+        { label: "ФИО контактного лица", value: current.contactName },
+        { label: "Телефон", value: formatPhoneDisplay(current.phone) },
+        { label: "Email", value: current.email },
+        { label: "Дата заявки", value: formatDateTime(current.createdAt) },
+      ];
 
   async function changeStatus(status: ApplicationStatus) {
     setError("");
@@ -196,16 +232,23 @@ export function AdminPartnerDetailPage() {
       onReject={() => void changeStatus("rejected")}
       onBlock={() => void changeStatus("blocked")}
       onChangeManager={(name) => void changeManager(name)}
-      fields={[
-        { label: "ID", value: formatPartnerApplicationNo(current.seq) },
-        { label: "Наименование юридического лица", value: current.companyName },
-        { label: "УНП", value: current.unp },
-        { label: "ФИО контактного лица", value: current.contactName },
-        { label: "Телефон", value: formatPhoneDisplay(current.phone) },
-        { label: "Email", value: current.email },
-        { label: "Дата заявки", value: formatDateTime(current.createdAt) },
-      ]}
-      extraContent={isDirectoryPartner(current.status) ? <PartnerActivityPanel applications={leasingApps} /> : null}
+      fields={directoryFields}
+      extraContent={profile ? <PartnerProfilePanel profile={profile} slot="before-docs" /> : null}
+      afterDocuments={
+        profile ? (
+          <>
+            <PartnerProfilePanel profile={profile} slot="after-docs" />
+            <section className="partner-activity-wrap" id="partner-applications">
+              <PartnerActivityPanel applications={leasingApps} />
+            </section>
+          </>
+        ) : null
+      }
+      sectionNav={profile ? <PartnerCardNav /> : null}
+      factsTitle={profile ? "Общая информация" : undefined}
+      factsId={profile ? "partner-general" : undefined}
+      documentsTitle={profile ? "Документы" : undefined}
+      documentsId={profile ? "partner-docs" : undefined}
       documents={current.documents.map((item) => ({
         label: partnerDocumentLabel(item.key),
         fileName: item.fileName,
